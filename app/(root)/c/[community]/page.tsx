@@ -6,14 +6,16 @@ import { fetchCommunityDetailsByUsername } from "@/lib/actions/community.actions
 import { fetchChirpsByCommunityTag } from "@/lib/actions/chirp.actions";
 import ChirpCard from "@/components/cards/ChirpCard";
 
-async function CommunityTagPage({ params }: { params: { community: string } }) {
+// Update the function signature to make it async and await params
+async function CommunityTagPage({ params }: { params: Promise<{ community: string }> }) {
   const user = await currentUser();
   if (!user) return null;
 
   const userInfo = await fetchUser(user.id);
   if (!userInfo?.onboarded) redirect("/onboarding");
 
-  const { community } = params;
+  // Await the params Promise
+  const { community } = await params;
   const communityUsername = community;
 
   try {
