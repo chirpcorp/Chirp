@@ -1,2 +1,2 @@
 test/
-app/api/test-upload/
+app/api/test-upload/route.ts
