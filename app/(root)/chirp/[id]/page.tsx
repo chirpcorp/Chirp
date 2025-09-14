@@ -1,17 +1,15 @@
 import { redirect } from "next/navigation";
 import { currentUser } from "@clerk/nextjs/server";
-
 import Comment from "@/components/forms/Comment";
 import ChirpCard from "@/components/cards/ChirpCard";
-
 import { fetchUser } from "@/lib/actions/user.actions";
 import { fetchChirpById } from "@/lib/actions/chirp.actions";
 
 export const revalidate = 0;
 
-async function page({ params }: { params: { id: string } }) {
-  const { id } = params;
-  
+// Update params type to Promise and await it
+async function page({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   if (!id) return null;
 
   const user = await currentUser();
