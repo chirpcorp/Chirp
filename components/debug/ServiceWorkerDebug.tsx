@@ -1,24 +1,24 @@
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useNotifications } from '@/hooks/useNotifications';
 
 export default function ServiceWorkerDebug() {
   const [status, setStatus] = useState<any>(null);
   const { getStatus, requestPermission, sendTestNotification } = useNotifications();
 
-  const updateStatus = () => {
+  const updateStatus = useCallback(() => {
     const currentStatus = getStatus();
     setStatus(currentStatus);
     console.log('Service Worker Status:', currentStatus);
-  };
+  }, [getStatus]);
 
   useEffect(() => {
     updateStatus();
     // Update status every 2 seconds
     const interval = setInterval(updateStatus, 2000);
     return () => clearInterval(interval);
-  }, [getStatus]);
+  }, [updateStatus]);
 
   const handleRequestPermission = async () => {
     try {
@@ -43,7 +43,7 @@ export default function ServiceWorkerDebug() {
     if ('serviceWorker' in navigator) {
       try {
         const registrations = await navigator.serviceWorker.getRegistrations();
-        for (let registration of registrations) {
+        for (const registration of registrations) {
           await registration.unregister();
         }
         console.log('All service workers unregistered');
@@ -56,45 +56,45 @@ export default function ServiceWorkerDebug() {
   };
 
   return (
-    <div className="bg-dark-2 rounded-xl p-6 mb-6">
-      <h3 className="text-heading4-medium text-light-1 mb-4">
+    <div className="mb-6 rounded-xl bg-dark-2 p-6">
+      <h3 className="mb-4 text-heading4-medium text-light-1">
         🔧 Service Worker Debug Panel
       </h3>
       
       {status && (
-        <div className="mb-6 bg-dark-3 rounded-lg p-4">
-          <h4 className="text-body-semibold text-light-1 mb-2">Current Status:</h4>
-          <pre className="text-xs text-gray-1 overflow-x-auto">
+        <div className="mb-6 rounded-lg bg-dark-3 p-4">
+          <h4 className="mb-2 text-body-semibold text-light-1">Current Status:</h4>
+          <pre className="overflow-x-auto text-xs text-gray-1">
             {JSON.stringify(status, null, 2)}
           </pre>
         </div>
       )}
 
-      <div className="flex flex-wrap gap-3 mb-4">
+      <div className="mb-4 flex flex-wrap gap-3">
         <button
           onClick={updateStatus}
-          className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg text-sm transition-colors"
+          className="text-sm rounded-lg bg-gray-600 px-4 py-2 text-white transition-colors hover:bg-gray-700"
         >
           Refresh Status
         </button>
         
         <button
           onClick={handleRequestPermission}
-          className="px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg text-sm transition-colors"
+          className="hover:bg-primary-600 text-sm rounded-lg bg-primary-500 px-4 py-2 text-white transition-colors"
         >
           Request Permission
         </button>
         
         <button
           onClick={handleTestNotification}
-          className="px-4 py-2 bg-secondary-500 hover:bg-secondary-600 text-white rounded-lg text-sm transition-colors"
+          className="hover:bg-secondary-600 text-sm rounded-lg bg-secondary-500 px-4 py-2 text-white transition-colors"
         >
           Test Notification
         </button>
         
         <button
           onClick={reloadServiceWorker}
-          className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg text-sm transition-colors"
+          className="text-sm rounded-lg bg-red-500 px-4 py-2 text-white transition-colors hover:bg-red-600"
         >
           Reset Service Worker
         </button>
@@ -102,11 +102,11 @@ export default function ServiceWorkerDebug() {
 
       <div className="text-small-regular text-gray-1">
         <p><strong>How to use:</strong></p>
-        <ol className="list-decimal list-inside space-y-1 mt-2">
+        <ol className="mt-2 list-inside list-decimal space-y-1">
           <li>Check the current status above</li>
-          <li>If Service Worker is not active, try "Reset Service Worker"</li>
-          <li>Click "Request Permission" to enable notifications</li>
-          <li>Click "Test Notification" to verify it works</li>
+          <li>If Service Worker is not active, try &quot;Reset Service Worker&quot;</li>
+          <li>Click &quot;Request Permission&quot; to enable notifications</li>
+          <li>Click &quot;Test Notification&quot; to verify it works</li>
           <li>Check browser console for detailed logs</li>
         </ol>
       </div>

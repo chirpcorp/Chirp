@@ -26,6 +26,7 @@ function ProfileActions({
   isPrivate = false,
 }: Props) {
   const pathname = usePathname();
+  // eslint-disable-next-line no-unused-vars
   const router = useRouter();
   const [isFollowing, setIsFollowing] = useState(initialIsFollowing);
   const [isBlocked, setIsBlocked] = useState(initialIsBlocked);
@@ -113,7 +114,7 @@ function ProfileActions({
         <button
           onClick={handleBlock}
           disabled={isLoading}
-          className='flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm text-white hover:bg-red-700 transition-colors disabled:opacity-50'
+          className='text-sm flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-white transition-colors hover:bg-red-700 disabled:opacity-50'
         >
           <Image src='/assets/unblock.svg' alt='unblock' width={16} height={16} />
           Unblock
@@ -124,17 +125,17 @@ function ProfileActions({
 
   return (
     <>
-      <div className='flex gap-2 relative'>
+      <div className='relative flex gap-2'>
         {/* Follow/Unfollow Button */}
         <button
           onClick={handleFollow}
           disabled={isLoading}
-          className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm transition-colors disabled:opacity-50 ${
+          className={`text-sm flex items-center gap-2 rounded-lg px-4 py-2 transition-colors disabled:opacity-50 ${
             isFollowing
               ? 'bg-gray-600 text-white hover:bg-gray-700'
               : pendingRequest
               ? 'bg-orange-600 text-white hover:bg-orange-700'
-              : 'bg-blue-600 text-white hover:bg-blue-700'
+              : 'bg-blue-600 hover:bg-blue-700 text-white'
           }`}
         >
           <Image 
@@ -166,20 +167,20 @@ function ProfileActions({
         {/* More Options Button */}
         <button
           onClick={() => setShowMenu(!showMenu)}
-          className='flex items-center justify-center rounded-lg bg-dark-3 p-2 hover:bg-dark-4 transition-colors'
+          className='flex items-center justify-center rounded-lg bg-dark-3 p-2 transition-colors hover:bg-dark-4'
         >
           <Image src='/assets/more.svg' alt='more options' width={16} height={16} />
         </button>
 
         {/* Dropdown Menu */}
         {showMenu && (
-          <div className='absolute right-0 top-12 z-10 w-48 rounded-lg bg-dark-2 border border-dark-3 shadow-lg'>
+          <div className='absolute right-0 top-12 z-10 w-48 rounded-lg border border-dark-3 bg-dark-2 shadow-lg'>
             <button
               onClick={() => {
                 setShowReportModal(true);
                 setShowMenu(false);
               }}
-              className='flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-light-2 hover:bg-dark-3 transition-colors'
+              className='text-sm flex w-full items-center gap-2 px-4 py-2 text-left text-light-2 transition-colors hover:bg-dark-3'
             >
               <Image src='/assets/report.svg' alt='report' width={16} height={16} />
               Report @{targetUsername}
@@ -187,7 +188,7 @@ function ProfileActions({
             <button
               onClick={handleBlock}
               disabled={isLoading}
-              className='flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-red-400 hover:bg-dark-3 transition-colors disabled:opacity-50'
+              className='text-sm flex w-full items-center gap-2 px-4 py-2 text-left text-red-400 transition-colors hover:bg-dark-3 disabled:opacity-50'
             >
               <Image src='/assets/block.svg' alt='block' width={16} height={16} />
               Block @{targetUsername}
@@ -200,29 +201,29 @@ function ProfileActions({
       {showReportModal && (
         <div className='fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50'>
           <div className='w-full max-w-md rounded-lg bg-dark-2 p-6'>
-            <h3 className='text-lg font-semibold text-light-1 mb-4'>
+            <h3 className='text-lg mb-4 font-semibold text-light-1'>
               Report @{targetUsername}
             </h3>
             <textarea
               value={reportReason}
               onChange={(e) => setReportReason(e.target.value)}
               placeholder='Please explain why you are reporting this user...'
-              className='w-full h-32 p-3 rounded-lg bg-dark-3 text-light-1 border border-dark-4 focus:border-primary-500 focus:outline-none resize-none'
+              className='h-32 w-full resize-none rounded-lg border border-dark-4 bg-dark-3 p-3 text-light-1 focus:border-primary-500 focus:outline-none'
             />
-            <div className='flex gap-3 mt-4'>
+            <div className='mt-4 flex gap-3'>
               <button
                 onClick={() => {
                   setShowReportModal(false);
                   setReportReason("");
                 }}
-                className='flex-1 rounded-lg bg-dark-3 py-2 text-sm text-light-2 hover:bg-dark-4 transition-colors'
+                className='text-sm flex-1 rounded-lg bg-dark-3 py-2 text-light-2 transition-colors hover:bg-dark-4'
               >
                 Cancel
               </button>
               <button
                 onClick={handleReport}
                 disabled={isLoading || !reportReason.trim()}
-                className='flex-1 rounded-lg bg-red-600 py-2 text-sm text-white hover:bg-red-700 transition-colors disabled:opacity-50'
+                className='text-sm flex-1 rounded-lg bg-red-600 py-2 text-white transition-colors hover:bg-red-700 disabled:opacity-50'
               >
                 Submit Report
               </button>
@@ -234,7 +235,7 @@ function ProfileActions({
       {/* Click outside to close menu */}
       {showMenu && (
         <div 
-          className='fixed inset-0 z-5' 
+          className='z-5 fixed inset-0' 
           onClick={() => setShowMenu(false)}
         />
       )}

@@ -74,7 +74,7 @@ function CommunityJoinRequests({
 
   if (requests.length === 0) {
     return (
-      <div className="text-center py-12">
+      <div className="py-12 text-center">
         <div className="mb-4">
           <Image
             src="/assets/empty-state.svg"
@@ -84,9 +84,9 @@ function CommunityJoinRequests({
             className="mx-auto opacity-50"
           />
         </div>
-        <h3 className="text-heading4-medium text-light-1 mb-2">No pending requests</h3>
+        <h3 className="mb-2 text-heading4-medium text-light-1">No pending requests</h3>
         <p className="text-body-regular text-gray-1">
-          When users request to join your private community, they'll appear here.
+          When users request to join your private community, they will appear here.
         </p>
       </div>
     );
@@ -102,10 +102,10 @@ function CommunityJoinRequests({
         {requests.map((request) => (
           <div
             key={request._id}
-            className="p-6 bg-dark-2 rounded-xl border border-dark-4"
+            className="rounded-xl border border-dark-4 bg-dark-2 p-6"
           >
             <div className="flex items-start justify-between">
-              <div className="flex items-start gap-4 flex-1">
+              <div className="flex flex-1 items-start gap-4">
                 <Link href={`/profile/${request.id}`} className="relative flex-shrink-0">
                   <Image
                     src={request.image}
@@ -116,8 +116,8 @@ function CommunityJoinRequests({
                   />
                 </Link>
                 
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
+                <div className="min-w-0 flex-1">
+                  <div className="mb-1 flex items-center gap-2">
                     <Link href={`/profile/${request.id}`}>
                       <h3 className="text-body-semibold text-light-1 hover:underline">
                         {request.name}
@@ -128,7 +128,7 @@ function CommunityJoinRequests({
                     </span>
                   </div>
                   
-                  <p className="text-tiny-medium text-gray-1 mb-3">
+                  <p className="mb-3 text-tiny-medium text-gray-1">
                     Requested {new Date(request.requestedAt).toLocaleDateString()} at{' '}
                     {new Date(request.requestedAt).toLocaleTimeString([], { 
                       hour: '2-digit', 
@@ -137,9 +137,9 @@ function CommunityJoinRequests({
                   </p>
                   
                   {request.message && (
-                    <div className="bg-dark-3 p-3 rounded-lg">
+                    <div className="rounded-lg bg-dark-3 p-3">
                       <p className="text-small-regular text-light-2">
-                        "{request.message}"
+                        &quot;{request.message}&quot;
                       </p>
                     </div>
                   )}
@@ -147,11 +147,11 @@ function CommunityJoinRequests({
               </div>
 
               {/* Action Buttons */}
-              <div className="flex items-center gap-3 ml-4">
+              <div className="ml-4 flex items-center gap-3">
                 <Button
                   onClick={() => handleRejectRequest(request.id, request.name)}
                   disabled={loadingRequest === request.id}
-                  className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2"
+                  className="bg-gray-600 px-4 py-2 text-white hover:bg-gray-700"
                 >
                   {loadingRequest === request.id ? '...' : 'Decline'}
                 </Button>
@@ -159,7 +159,7 @@ function CommunityJoinRequests({
                 <Button
                   onClick={() => handleApproveRequest(request.id, request.name)}
                   disabled={loadingRequest === request.id}
-                  className="bg-primary-500 hover:bg-primary-600 text-white px-4 py-2"
+                  className="hover:bg-primary-600 bg-primary-500 px-4 py-2 text-white"
                 >
                   {loadingRequest === request.id ? '...' : 'Approve'}
                 </Button>
@@ -170,7 +170,7 @@ function CommunityJoinRequests({
       </div>
       
       {requests.length > 0 && (
-        <div className="mt-6 p-4 bg-dark-3 rounded-lg">
+        <div className="mt-6 rounded-lg bg-dark-3 p-4">
           <div className="flex items-start gap-3">
             <Image
               src="/assets/info.svg"
@@ -180,7 +180,7 @@ function CommunityJoinRequests({
               className="mt-0.5 flex-shrink-0"
             />
             <div>
-              <h4 className="text-body-semibold text-light-1 mb-1">Admin Tip</h4>
+              <h4 className="mb-1 text-body-semibold text-light-1">Admin Tip</h4>
               <p className="text-small-regular text-gray-1">
                 Review each request carefully. Approved members will have access to all community content. 
                 You can always remove members later if needed.

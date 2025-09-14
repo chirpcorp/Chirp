@@ -60,7 +60,7 @@ async function Page({ params }: { params: Promise<{ id: string }> }) {
       />
 
       {shouldHideContent ? (
-        <div className='mt-9 text-center py-16'>
+        <div className='mt-9 py-16 text-center'>
           <div className='flex flex-col items-center gap-4'>
             <Image
               src='/assets/lock.svg'
@@ -70,7 +70,7 @@ async function Page({ params }: { params: Promise<{ id: string }> }) {
               className='text-gray-1 opacity-70'
             />
             <h3 className='text-heading4-medium text-light-1'>This account is private</h3>
-            <p className='text-base-regular text-gray-1 max-w-md'>
+            <p className='max-w-md text-base-regular text-gray-1'>
               Follow @{userInfo.username} to see their photos, videos and activity.
             </p>
           </div>

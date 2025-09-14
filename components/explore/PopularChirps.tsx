@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import ChirpCard from "@/components/cards/ChirpCard";
 import { getPopularPosts } from "@/lib/algorithms/recommendation";
 
@@ -9,11 +9,7 @@ export function PopularChirps() {
   const [loading, setLoading] = useState(true);
   const [timeFilter, setTimeFilter] = useState<'1h' | '24h' | '7d'>('24h');
 
-  useEffect(() => {
-    loadPopularPosts();
-  }, [timeFilter]);
-
-  const loadPopularPosts = async () => {
+  const loadPopularPosts = useCallback(async () => {
     setLoading(true);
     try {
       // Load popular posts using the new function
@@ -24,7 +20,11 @@ export function PopularChirps() {
       console.error("Error loading popular posts:", error);
       setLoading(false);
     }
-  };
+  }, [timeFilter]);
+
+  useEffect(() => {
+    loadPopularPosts();
+  }, [loadPopularPosts]);
 
   return (
     <div className="space-y-6">
@@ -43,7 +43,7 @@ export function PopularChirps() {
             <button
               key={period.value}
               onClick={() => setTimeFilter(period.value as any)}
-              className={`px-3 py-1 rounded-full text-small-medium transition-colors ${
+              className={`rounded-full px-3 py-1 text-small-medium transition-colors ${
                 timeFilter === period.value
                   ? 'bg-primary-500 text-white'
                   : 'bg-dark-3 text-gray-1 hover:bg-dark-2'
@@ -58,19 +58,19 @@ export function PopularChirps() {
       {loading ? (
         <div className="space-y-4">
           {[...Array(5)].map((_, i) => (
-            <div key={i} className="bg-dark-2 p-6 rounded-xl animate-pulse">
+            <div key={i} className="animate-pulse rounded-xl bg-dark-2 p-6">
               <div className="flex gap-4">
-                <div className="w-12 h-12 bg-dark-3 rounded-full"></div>
+                <div className="size-12 rounded-full bg-dark-3"></div>
                 <div className="flex-1 space-y-3">
-                  <div className="h-4 bg-dark-3 rounded w-1/4"></div>
+                  <div className="h-4 w-1/4 rounded bg-dark-3"></div>
                   <div className="space-y-2">
-                    <div className="h-4 bg-dark-3 rounded w-full"></div>
-                    <div className="h-4 bg-dark-3 rounded w-3/4"></div>
+                    <div className="h-4 w-full rounded bg-dark-3"></div>
+                    <div className="h-4 w-3/4 rounded bg-dark-3"></div>
                   </div>
                   <div className="flex gap-6">
-                    <div className="h-6 w-6 bg-dark-3 rounded"></div>
-                    <div className="h-6 w-6 bg-dark-3 rounded"></div>
-                    <div className="h-6 w-6 bg-dark-3 rounded"></div>
+                    <div className="size-6 rounded bg-dark-3"></div>
+                    <div className="size-6 rounded bg-dark-3"></div>
+                    <div className="size-6 rounded bg-dark-3"></div>
                   </div>
                 </div>
               </div>
@@ -83,7 +83,7 @@ export function PopularChirps() {
             <div key={post._id} className="relative">
               {/* Popular indicator */}
               <div className="absolute -left-4 top-4 z-10">
-                <div className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white px-2 py-1 rounded-full text-tiny-medium">
+                <div className="rounded-full bg-gradient-to-r from-yellow-500 to-orange-500 px-2 py-1 text-tiny-medium text-white">
                   #{index + 1} Popular
                 </div>
               </div>
@@ -96,13 +96,13 @@ export function PopularChirps() {
           ))}
         </div>
       ) : (
-        <div className="text-center py-12">
+        <div className="py-12 text-center">
           <div className="text-4xl mb-4">🔥</div>
-          <h3 className="text-heading4-medium text-light-1 mb-2">
+          <h3 className="mb-2 text-heading4-medium text-light-1">
             No popular posts yet
           </h3>
           <p className="text-body-regular text-gray-1">
-            Start engaging with posts to see what's trending!
+            Start engaging with posts to see what&apos;s trending!
           </p>
         </div>
       )}

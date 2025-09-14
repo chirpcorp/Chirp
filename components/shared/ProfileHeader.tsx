@@ -52,7 +52,7 @@ function ProfileHeader({
     <div className='flex w-full flex-col justify-start'>
       <div className='flex items-start justify-between'>
         <div className='flex items-center gap-4'>
-          <div className='relative h-24 w-24 object-cover'>
+          <div className='relative size-24 object-cover'>
             <Image
               src={imgUrl}
               alt='profile image'
@@ -62,7 +62,7 @@ function ProfileHeader({
           </div>
 
           <div className='flex-1'>
-            <h2 className='text-left text-heading3-bold text-light-1 flex items-center gap-2'>
+            <h2 className='flex items-center gap-2 text-left text-heading3-bold text-light-1'>
               {name}
               {isPrivate && (
                 <Image
@@ -74,7 +74,7 @@ function ProfileHeader({
                 />
               )}
             </h2>
-            <p className='text-base-medium text-gray-1 flex items-center gap-1'>
+            <p className='flex items-center gap-1 text-base-medium text-gray-1'>
               @{username}
               {isPrivate && (
                 <Image
@@ -88,12 +88,12 @@ function ProfileHeader({
             </p>
             
             {/* Stats */}
-            <div className='flex gap-4 mt-2'>
-              <Link href={`/profile/${accountId}/following`} className='text-small-medium text-gray-1 hover:text-light-1 transition-colors cursor-pointer'>
-                <span className='text-light-1 font-semibold'>{followingCount}</span> Following
+            <div className='mt-2 flex gap-4'>
+              <Link href={`/profile/${accountId}/following`} className='cursor-pointer text-small-medium text-gray-1 transition-colors hover:text-light-1'>
+                <span className='font-semibold text-light-1'>{followingCount}</span> Following
               </Link>
-              <Link href={`/profile/${accountId}/followers`} className='text-small-medium text-gray-1 hover:text-light-1 transition-colors cursor-pointer'>
-                <span className='text-light-1 font-semibold'>{followersCount}</span> Followers
+              <Link href={`/profile/${accountId}/followers`} className='cursor-pointer text-small-medium text-gray-1 transition-colors hover:text-light-1'>
+                <span className='font-semibold text-light-1'>{followersCount}</span> Followers
               </Link>
             </div>
           </div>
@@ -103,7 +103,7 @@ function ProfileHeader({
         <div className='flex gap-2'>
           {isOwnProfile && type !== "Community" ? (
             <Link href='/profile/edit'>
-              <div className='flex cursor-pointer gap-2 rounded-lg bg-dark-3 px-4 py-2 hover:bg-dark-4 transition-colors'>
+              <div className='flex cursor-pointer gap-2 rounded-lg bg-dark-3 px-4 py-2 transition-colors hover:bg-dark-4'>
                 <Image
                   src='/assets/edit.svg'
                   alt='edit'

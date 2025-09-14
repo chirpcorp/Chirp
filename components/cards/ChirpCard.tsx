@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { usePathname } from "next/navigation";
 
 import { formatDateString, parseTextContent } from "@/lib/utils";
@@ -10,7 +10,6 @@ import DeleteChirp from "../forms/DeleteChirp";
 import SharePopup from "../shared/SharePopup";
 import MediaGallery from "../shared/MediaGallery";
 import { toggleLikeChirp, shareChirp } from "@/lib/actions/chirp.actions";
-import { fetchUser } from "@/lib/actions/user.actions";
 
 interface Props {
   id: string;
@@ -75,11 +74,6 @@ function ChirpCard({
   const [shareCount, setShareCount] = useState(shares.length);
   const [isLoading, setIsLoading] = useState(false);
   const [showSharePopup, setShowSharePopup] = useState(false);
-  const [chirpUrl, setChirpUrl] = useState("");
-
-  useEffect(() => {
-    setChirpUrl(`${window.location.origin}/chirp/${id}`);
-  }, [id]);
 
   const handleLike = async () => {
     setIsLoading(true);
@@ -121,11 +115,11 @@ function ChirpCard({
         <div className='flex w-full flex-1 flex-row gap-4'>
           {/* Facebook-style community header for community posts */}
           {community && !isComment ? (
-            <div className='flex flex-col w-full'>
+            <div className='flex w-full flex-col'>
               {/* Community Header */}
-              <div className='flex items-center gap-3 mb-3'>
+              <div className='mb-3 flex items-center gap-3'>
                 <Link href={`/communities/${community.username || community.id}`} className='relative'>
-                  <div className='relative h-12 w-12'>
+                  <div className='relative size-12'>
                     <Image
                       src={community.image}
                       alt={community.name}
@@ -134,7 +128,7 @@ function ChirpCard({
                       unoptimized={true}
                     />
                     {community.isPrivate && (
-                      <div className='absolute -top-1 -right-1 bg-gray-600 rounded-full p-1'>
+                      <div className='absolute -right-1 -top-1 rounded-full bg-gray-600 p-1'>
                         <Image src='/assets/lock.svg' alt='private' width={10} height={10} unoptimized={true} />
                       </div>
                     )}
@@ -154,8 +148,8 @@ function ChirpCard({
               </div>
               
               {/* User info within community post */}
-              <div className='flex items-center gap-3 ml-2'>
-                <Link href={`/profile/${author.id}`} className='relative h-8 w-8'>
+              <div className='ml-2 flex items-center gap-3'>
+                <Link href={`/profile/${author.id}`} className='relative size-8'>
                   <Image
                     src={author.image}
                     alt={author.name}
@@ -185,7 +179,7 @@ function ChirpCard({
                         <Link
                           key={index}
                           href={part.href!}
-                          className='text-blue-400 font-semibold hover:text-blue-300 hover:underline'
+                          className='font-semibold text-blue-400 hover:text-blue-300 hover:underline'
                         >
                           {part.content}
                         </Link>
@@ -197,7 +191,7 @@ function ChirpCard({
                         <Link
                           key={index}
                           href={mentionUser ? `/profile/${mentionUser.userId}` : `/search?q=${username}`}
-                          className='text-blue-400 font-semibold hover:text-blue-300 hover:underline'
+                          className='font-semibold text-blue-400 hover:text-blue-300 hover:underline'
                         >
                           {part.content}
                         </Link>
@@ -208,7 +202,7 @@ function ChirpCard({
                         <Link
                           key={index}
                           href={`/communities/${communityUsername}`}
-                          className='text-purple-400 font-semibold hover:text-purple-300 hover:underline'
+                          className='font-semibold text-purple-400 hover:text-purple-300 hover:underline'
                         >
                           {part.content}
                         </Link>
@@ -220,7 +214,7 @@ function ChirpCard({
                           href={part.href!}
                           target='_blank'
                           rel='noopener noreferrer'
-                          className='text-blue-400 font-medium hover:text-blue-300 hover:underline break-all'
+                          className='break-all font-medium text-blue-400 hover:text-blue-300 hover:underline'
                         >
                           {part.content}
                         </a>
@@ -230,7 +224,7 @@ function ChirpCard({
                         <a
                           key={index}
                           href={part.href!}
-                          className='text-blue-400 font-medium hover:text-blue-300 hover:underline'
+                          className='font-medium text-blue-400 hover:text-blue-300 hover:underline'
                         >
                           {part.content}
                         </a>
@@ -256,7 +250,7 @@ function ChirpCard({
                   <button 
                     onClick={handleLike}
                     disabled={isLoading}
-                    className='flex items-center gap-2 cursor-pointer hover:scale-105 transition-transform disabled:opacity-50'
+                    className='flex cursor-pointer items-center gap-2 transition-transform hover:scale-105 disabled:opacity-50'
                   >
                     <Image
                       src={isLiked ? '/assets/heart-filled.svg' : '/assets/heart-gray.svg'}
@@ -270,7 +264,7 @@ function ChirpCard({
                   </button>
                   
                   {/* Reply Button */}
-                  <Link href={`/chirp/${id}`} className='flex items-center gap-2 hover:scale-105 transition-transform'>
+                  <Link href={`/chirp/${id}`} className='flex items-center gap-2 transition-transform hover:scale-105'>
                     <Image
                       src='/assets/reply.svg'
                       alt='reply'
@@ -288,7 +282,7 @@ function ChirpCard({
                     alt='repost'
                     width={24}
                     height={24}
-                    className='cursor-pointer object-contain hover:scale-105 transition-transform'
+                    className='cursor-pointer object-contain transition-transform hover:scale-105'
                     unoptimized={true}
                   />
                   
@@ -296,7 +290,7 @@ function ChirpCard({
                   <button 
                     onClick={handleShare}
                     disabled={isLoading}
-                    className='flex items-center gap-2 cursor-pointer hover:scale-105 transition-transform disabled:opacity-50'
+                    className='flex cursor-pointer items-center gap-2 transition-transform hover:scale-105 disabled:opacity-50'
                   >
                     <Image
                       src='/assets/share.svg'
@@ -308,7 +302,7 @@ function ChirpCard({
                     />
                     {shareCount > 0 && <span className='text-small-medium text-gray-1'>{shareCount}</span>}
                     {/* Delete Button */}
-                    <button className='flex items-center justify-center hover:scale-105 transition-transform' title='Delete'>
+                    <button className='flex items-center justify-center transition-transform hover:scale-105' title='Delete'>
                       <Image
                         src='/assets/delete.svg'
                         alt='delete'
@@ -326,7 +320,7 @@ function ChirpCard({
             /* Regular post layout (non-community or comment) */
               <>
               <div className='flex flex-col items-center'>
-                <Link href={`/profile/${author.id}`} className='relative h-11 w-11'>
+                <Link href={`/profile/${author.id}`} className='relative size-11'>
                   <Image
                     src={author.image}
                     alt='user_community_image'
@@ -355,7 +349,7 @@ function ChirpCard({
                         <Link
                           key={index}
                           href={part.href!}
-                          className='text-blue font-semibold hover:text-cyan-300 hover:underline'
+                          className='font-semibold text-blue hover:text-cyan-300 hover:underline'
                         >
                           {part.content}
                         </Link>
@@ -367,7 +361,7 @@ function ChirpCard({
                         <Link
                           key={index}
                           href={mentionUser ? `/profile/${mentionUser.userId}` : `/search?q=${username}`}
-                          className='text-blue font-semibold hover:text-cyan-300 hover:underline'
+                          className='font-semibold text-blue hover:text-cyan-300 hover:underline'
                         >
                           {part.content}
                         </Link>
@@ -378,7 +372,7 @@ function ChirpCard({
                         <Link
                           key={index}
                           href={`/communities/${communityUsername}`}
-                          className='text-blue font-semibold hover:text-cyan-300 hover:underline'
+                          className='font-semibold text-blue hover:text-cyan-300 hover:underline'
                         >
                           {part.content}
                         </Link>
@@ -390,7 +384,7 @@ function ChirpCard({
                           href={part.href!}
                           target='_blank'
                           rel='noopener noreferrer'
-                          className='text-purple-400 font-medium hover:text-purple-300 hover:underline break-all'
+                          className='break-all font-medium text-purple-400 hover:text-purple-300 hover:underline'
                         >
                           {part.content}
                         </a>
@@ -400,7 +394,7 @@ function ChirpCard({
                         <a
                           key={index}
                           href={part.href!}
-                          className='text-blue font-medium hover:text-cyan-300 hover:underline'
+                          className='font-medium text-blue hover:text-cyan-300 hover:underline'
                         >
                           {part.content}
                         </a>
@@ -425,7 +419,7 @@ function ChirpCard({
                     <button 
                       onClick={handleLike}
                       disabled={isLoading}
-                      className='flex items-center gap-2 cursor-pointer hover:scale-105 transition-transform disabled:opacity-50'
+                      className='flex cursor-pointer items-center gap-2 transition-transform hover:scale-105 disabled:opacity-50'
                     >
                       <Image
                         src={isLiked ? '/assets/heart-filled.svg' : '/assets/heart-gray.svg'}
@@ -439,7 +433,7 @@ function ChirpCard({
                     </button>
                     
                     {/* Reply Button */}
-                    <Link href={`/chirp/${id}`} className='flex items-center gap-2 hover:scale-105 transition-transform'>
+                    <Link href={`/chirp/${id}`} className='flex items-center gap-2 transition-transform hover:scale-105'>
                       <Image
                         src='/assets/reply.svg'
                         alt='reply'
@@ -457,7 +451,7 @@ function ChirpCard({
                       alt='repost'
                       width={24}
                       height={24}
-                      className='cursor-pointer object-contain hover:scale-105 transition-transform'
+                      className='cursor-pointer object-contain transition-transform hover:scale-105'
                       unoptimized={true}
                     />
                     
@@ -465,7 +459,7 @@ function ChirpCard({
                     <button 
                       onClick={handleShare}
                       disabled={isLoading}
-                      className='flex items-center gap-2 cursor-pointer hover:scale-105 transition-transform disabled:opacity-50'
+                      className='flex cursor-pointer items-center gap-2 transition-transform hover:scale-105 disabled:opacity-50'
                     >
                       <Image
                         src='/assets/share.svg'

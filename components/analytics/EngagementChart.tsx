@@ -38,8 +38,8 @@ export function EngagementChart({ userId }: Props) {
   };
 
   return (
-    <div className="bg-dark-2 rounded-xl p-6">
-      <div className="flex items-center justify-between mb-6">
+    <div className="rounded-xl bg-dark-2 p-6">
+      <div className="mb-6 flex items-center justify-between">
         <h3 className="text-heading4-medium text-light-1">
           Engagement Over Time
         </h3>
@@ -53,7 +53,7 @@ export function EngagementChart({ userId }: Props) {
             <button
               key={range.value}
               onClick={() => setTimeRange(range.value as any)}
-              className={`px-3 py-1 rounded-full text-small-medium transition-colors ${
+              className={`rounded-full px-3 py-1 text-small-medium transition-colors ${
                 timeRange === range.value
                   ? 'bg-primary-500 text-white'
                   : 'bg-dark-3 text-gray-1 hover:bg-dark-4'
@@ -66,11 +66,11 @@ export function EngagementChart({ userId }: Props) {
       </div>
 
       {loading ? (
-        <div className="h-64 flex items-center justify-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500"></div>
+        <div className="flex h-64 items-center justify-center">
+          <div className="size-8 animate-spin rounded-full border-b-2 border-primary-500"></div>
         </div>
       ) : (
-        <div className="h-64 flex items-end justify-between gap-1">
+        <div className="flex h-64 items-end justify-between gap-1">
           {data.slice(0, 30).map((point, index) => {
             const maxValue = Math.max(...data.map(d => d.likes + d.shares + d.comments));
             const totalEngagement = point.likes + point.shares + point.comments;
@@ -79,10 +79,10 @@ export function EngagementChart({ userId }: Props) {
             return (
               <div
                 key={index}
-                className="flex-1 flex flex-col items-center group cursor-pointer"
+                className="group flex flex-1 cursor-pointer flex-col items-center"
               >
                 {/* Tooltip */}
-                <div className="opacity-0 group-hover:opacity-100 transition-opacity mb-2 bg-dark-1 rounded px-2 py-1 text-tiny-medium text-light-1 min-w-max">
+                <div className="mb-2 min-w-max rounded bg-dark-1 px-2 py-1 text-tiny-medium text-light-1 opacity-0 transition-opacity group-hover:opacity-100">
                   <div>{point.date}</div>
                   <div>Likes: {point.likes}</div>
                   <div>Shares: {point.shares}</div>
@@ -91,7 +91,7 @@ export function EngagementChart({ userId }: Props) {
                 
                 {/* Bar */}
                 <div 
-                  className="w-full bg-gradient-to-t from-primary-500 to-blue-400 rounded-t transition-all duration-300 group-hover:from-primary-400 group-hover:to-blue-300 min-h-[4px]"
+                  className="group-hover:from-primary-400 min-h-[4px] w-full rounded-t bg-gradient-to-t from-primary-500 to-blue-400 transition-all duration-300 group-hover:to-blue-300"
                   style={{ height: `${Math.max(height, 5)}%` }}
                 ></div>
               </div>
@@ -101,9 +101,9 @@ export function EngagementChart({ userId }: Props) {
       )}
 
       {/* Legend */}
-      <div className="flex items-center justify-center gap-6 mt-6 text-small-medium">
+      <div className="mt-6 flex items-center justify-center gap-6 text-small-medium">
         <div className="flex items-center gap-2">
-          <div className="w-3 h-3 bg-primary-500 rounded"></div>
+          <div className="size-3 rounded bg-primary-500"></div>
           <span className="text-gray-1">Engagement</span>
         </div>
       </div>

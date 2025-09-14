@@ -49,7 +49,7 @@ export function TrendingTopics({ trends }: Props) {
             <button
               key={period}
               onClick={() => setTimeFilter(period as any)}
-              className={`px-3 py-1 rounded-full text-small-medium transition-colors ${
+              className={`rounded-full px-3 py-1 text-small-medium transition-colors ${
                 timeFilter === period
                   ? 'bg-primary-500 text-white'
                   : 'bg-dark-3 text-gray-1 hover:bg-dark-2'
@@ -66,7 +66,7 @@ export function TrendingTopics({ trends }: Props) {
           <Link
             key={trend.hashtag}
             href={`/hashtag/${trend.hashtag}`}
-            className="block bg-dark-2 rounded-xl p-6 hover:bg-dark-3 transition-colors border border-dark-4"
+            className="block rounded-xl border border-dark-4 bg-dark-2 p-6 transition-colors hover:bg-dark-3"
           >
             <div className="flex items-start justify-between">
               <div className="flex items-start gap-4">
@@ -75,18 +75,18 @@ export function TrendingTopics({ trends }: Props) {
                 </div>
                 
                 <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2">
+                  <div className="mb-2 flex items-center gap-2">
                     <span className="text-small-medium text-gray-1">
                       #{index + 1} Trending
                     </span>
                     {index < 3 && (
-                      <span className="bg-red-500 text-white px-2 py-0.5 rounded-full text-tiny-medium">
+                      <span className="rounded-full bg-red-500 px-2 py-0.5 text-tiny-medium text-white">
                         HOT
                       </span>
                     )}
                   </div>
                   
-                  <h3 className="text-heading4-medium text-light-1 mb-2">
+                  <h3 className="mb-2 text-heading4-medium text-light-1">
                     #{trend.hashtag}
                   </h3>
                   
@@ -102,13 +102,13 @@ export function TrendingTopics({ trends }: Props) {
               
               {/* Trend indicator */}
               <div className="flex flex-col items-end">
-                <div className="flex items-center gap-1 mb-2">
-                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                <div className="mb-2 flex items-center gap-1">
+                  <div className="size-2 animate-pulse rounded-full bg-green-500"></div>
                   <span className="text-tiny-medium text-green-500">Live</span>
                 </div>
                 
                 {/* Mini chart placeholder */}
-                <div className="w-12 h-6 bg-gradient-to-r from-primary-500 to-green-500 rounded opacity-60"></div>
+                <div className="h-6 w-12 rounded bg-gradient-to-r from-primary-500 to-green-500 opacity-60"></div>
               </div>
             </div>
           </Link>
@@ -116,9 +116,9 @@ export function TrendingTopics({ trends }: Props) {
       </div>
 
       {trends.length === 0 && (
-        <div className="text-center py-12">
+        <div className="py-12 text-center">
           <div className="text-4xl mb-4">📊</div>
-          <h3 className="text-heading4-medium text-light-1 mb-2">
+          <h3 className="mb-2 text-heading4-medium text-light-1">
             No trends yet
           </h3>
           <p className="text-body-regular text-gray-1">

@@ -24,11 +24,24 @@ interface NotificationAction {
   icon?: string;
 }
 
+// Define missing types
+type NotificationPermission = 'default' | 'denied' | 'granted';
+
+interface NotificationOptions {
+  body?: string;
+  icon?: string;
+  badge?: string;
+  tag?: string;
+  data?: any;
+}
+
 interface ExtendedNotificationOptions extends NotificationOptions {
   actions?: NotificationAction[];
 }
 
+// eslint-disable-next-line no-use-before-define
 class NotificationService {
+  // eslint-disable-next-line no-use-before-define
   private static instance: NotificationService;
   private settings: NotificationSettings = {
     likes: true,
@@ -37,6 +50,7 @@ class NotificationService {
     mentions: true,
     followRequests: true,
   };
+
   private serviceWorkerRegistration: ServiceWorkerRegistration | null = null;
 
   private constructor() {
@@ -47,10 +61,14 @@ class NotificationService {
     });
   }
 
+  // eslint-disable-next-line no-use-before-define
   static getInstance(): NotificationService {
+    // eslint-disable-next-line no-use-before-define
     if (!NotificationService.instance) {
+      // eslint-disable-next-line no-use-before-define
       NotificationService.instance = new NotificationService();
     }
+    // eslint-disable-next-line no-use-before-define
     return NotificationService.instance;
   }
 
@@ -67,7 +85,7 @@ class NotificationService {
           await new Promise((resolve) => {
             const checkActive = () => {
               if (this.serviceWorkerRegistration?.active) {
-                resolve(void 0);
+                resolve(undefined);
               } else {
                 setTimeout(checkActive, 100);
               }
@@ -174,6 +192,7 @@ class NotificationService {
       } catch (error) {
         console.error('Service Worker notification failed, falling back to direct notification:', error);
         // Fallback to direct notification
+        // eslint-disable-next-line no-new
         new Notification(payload.title, {
           body: payload.body,
           icon: payload.icon || '/assets/community.svg',
@@ -182,6 +201,7 @@ class NotificationService {
     } else {
       // Fallback to direct notification when service worker isn't available
       console.log('Service Worker not ready, using direct notification');
+      // eslint-disable-next-line no-new
       new Notification(payload.title, {
         body: payload.body,
         icon: payload.icon || '/assets/community.svg',

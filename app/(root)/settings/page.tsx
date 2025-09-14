@@ -37,7 +37,7 @@ async function SettingsPage() {
       <div className="w-full space-y-8 overflow-hidden">
         <div className="border-b border-dark-4 pb-6">
           <h1 className="head-text text-left">Settings</h1>
-          <p className="text-body-regular text-gray-1 mt-2">
+          <p className="text-body-regular mt-2 text-gray-1">
             Manage your account preferences and privacy settings
           </p>
         </div>

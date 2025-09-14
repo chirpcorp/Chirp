@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import React,{ useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
@@ -34,14 +34,14 @@ export default function MediaGallery({ media, className = "" }: MediaGalleryProp
     adaptiveHeight: true,
     beforeChange: (oldIndex: number, newIndex: number) => setCurrentSlide(newIndex),
     appendDots: (dots: React.ReactNode) => (
-      <div className="absolute bottom-4 left-0 right-0">
+      <div className="absolute inset-x-0 bottom-4">
         <ul className="flex justify-center space-x-2"> 
           {dots}
         </ul>
       </div>
     ),
     customPaging: (i: number) => (
-      <div className="w-3 h-3 rounded-full bg-white/50 border border-white/30 hover:bg-white transition-colors"></div>
+      <div className="size-3 rounded-full border border-white/30 bg-white/50 transition-colors hover:bg-white"></div>
     ),
   };
 
@@ -101,45 +101,45 @@ export default function MediaGallery({ media, className = "" }: MediaGalleryProp
                   {/* Fullscreen icon overlay */}
                   <div className="media-gallery-overlay">
                     <div className="media-gallery-icon">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="size-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 0h-4m4 0l-5-5" />
                       </svg>
                     </div>
                   </div>
                 </div>
               ) : item.type.startsWith("video") ? (
-                <div className="relative w-full h-full group">
+                <div className="group relative size-full">
                   <video
                     src={item.url}
-                    className="w-full h-full object-contain"
+                    className="size-full object-contain"
                     controls
                     playsInline
                   />
                   {/* Play icon overlay */}
                   <div className="media-gallery-overlay">
                     <div className="media-gallery-icon">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-white" viewBox="0 0 20 20" fill="currentColor">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="size-8 text-white" viewBox="0 0 20 20" fill="currentColor">
                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
                       </svg>
                     </div>
                   </div>
                 </div>
               ) : (
-                <div className="flex items-center justify-center h-full bg-dark-2">
-                  <div className="text-center p-4">
+                <div className="flex h-full items-center justify-center bg-dark-2">
+                  <div className="p-4 text-center">
                     <div className="text-4xl mb-2">
                       {item.type.includes("audio") ? "🎵" : 
                        item.type.includes("pdf") ? "📄" : 
                        item.type.includes("doc") ? "📝" : "📎"}
                     </div>
-                    <p className="text-light-1 text-sm truncate max-w-xs">
+                    <p className="text-sm max-w-xs truncate text-light-1">
                       {item.filename || "File"}
                     </p>
                     <a 
                       href={item.url} 
                       target="_blank" 
                       rel="noopener noreferrer"
-                      className="text-primary-500 hover:text-primary-400 text-sm mt-2 inline-block"
+                      className="hover:text-primary-400 text-sm mt-2 inline-block text-primary-500"
                     >
                       Download
                     </a>
@@ -169,7 +169,7 @@ export default function MediaGallery({ media, className = "" }: MediaGalleryProp
             onClick={(e) => e.stopPropagation()} // Prevent closing when clicking on media
           >
             {media[fullscreenIndex]?.type.startsWith("image") ? (
-              <div className="relative w-full h-full">
+              <div className="relative size-full">
                 <Image
                   src={media[fullscreenIndex].url}
                   alt={media[fullscreenIndex].filename || `Media ${fullscreenIndex + 1}`}
@@ -179,31 +179,31 @@ export default function MediaGallery({ media, className = "" }: MediaGalleryProp
                 />
               </div>
             ) : media[fullscreenIndex]?.type.startsWith("video") ? (
-              <div className="relative w-full h-full flex items-center justify-center">
+              <div className="relative flex size-full items-center justify-center">
                 <video
                   src={media[fullscreenIndex].url}
-                  className="max-w-full max-h-full"
+                  className="max-h-full max-w-full"
                   controls
                   autoPlay
                   playsInline
                 />
               </div>
             ) : (
-              <div className="flex items-center justify-center h-full">
+              <div className="flex h-full items-center justify-center">
                 <div className="text-center">
                   <div className="text-6xl mb-4">
                     {media[fullscreenIndex]?.type.includes("audio") ? "🎵" : 
                      media[fullscreenIndex]?.type.includes("pdf") ? "📄" : 
                      media[fullscreenIndex]?.type.includes("doc") ? "📝" : "📎"}
                   </div>
-                  <p className="text-white text-xl mb-4">
+                  <p className="text-xl mb-4 text-white">
                     {media[fullscreenIndex]?.filename || "File"}
                   </p>
                   <a 
                     href={media[fullscreenIndex]?.url} 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="text-primary-500 hover:text-primary-400 text-lg"
+                    className="hover:text-primary-400 text-lg text-primary-500"
                   >
                     Download File
                   </a>
@@ -221,7 +221,7 @@ export default function MediaGallery({ media, className = "" }: MediaGalleryProp
                     setFullscreenIndex(prev => (prev > 0 ? prev - 1 : media.length - 1));
                   }}
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="size-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                   </svg>
                 </button>
@@ -232,7 +232,7 @@ export default function MediaGallery({ media, className = "" }: MediaGalleryProp
                     setFullscreenIndex(prev => (prev < media.length - 1 ? prev + 1 : 0));
                   }}
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="size-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>
                 </button>
@@ -244,7 +244,7 @@ export default function MediaGallery({ media, className = "" }: MediaGalleryProp
               className="media-gallery-close-button"
               onClick={closeFullscreen}
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg xmlns="http://www.w3.org/2000/svg" className="size-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>

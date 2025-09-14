@@ -23,17 +23,17 @@ export default function GalleryTest() {
 
   return (
     <div className="min-h-screen bg-dark-1 p-8">
-      <div className="max-w-4xl mx-auto">
-        <h1 className="text-3xl font-bold text-light-1 mb-8">Media Gallery Test</h1>
+      <div className="mx-auto max-w-4xl">
+        <h1 className="text-3xl mb-8 font-bold text-light-1">Media Gallery Test</h1>
         
-        <div className="bg-dark-2 rounded-xl p-6 mb-8">
-          <h2 className="text-xl font-semibold text-light-1 mb-4">Sample Media Gallery</h2>
+        <div className="mb-8 rounded-xl bg-dark-2 p-6">
+          <h2 className="text-xl mb-4 font-semibold text-light-1">Sample Media Gallery</h2>
           <MediaGallery media={sampleMedia} className="max-h-96" />
         </div>
         
-        <div className="bg-dark-2 rounded-xl p-6">
-          <h2 className="text-xl font-semibold text-light-1 mb-4">Instructions</h2>
-          <ul className="text-light-1 space-y-2">
+        <div className="rounded-xl bg-dark-2 p-6">
+          <h2 className="text-xl mb-4 font-semibold text-light-1">Instructions</h2>
+          <ul className="space-y-2 text-light-1">
             <li>• Click on any image to view it in fullscreen mode</li>
             <li>• Use arrow keys or navigation buttons to move between media items</li>
             <li>• Press ESC or click the close button to exit fullscreen mode</li>

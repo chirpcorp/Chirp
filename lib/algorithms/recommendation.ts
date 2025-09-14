@@ -5,7 +5,6 @@ import { connectToDB } from "../mongoose";
 import { resolveUserObjectId } from "../utils/userIdResolver";
 import User from "../models/user.model";
 import Chirp from "../models/chirp.model.enhanced";
-import Community from "../models/community.model";
 
 // Content-based filtering algorithm
 export async function getPersonalizedFeed(userId: string, limit = 30, skip = 0) {

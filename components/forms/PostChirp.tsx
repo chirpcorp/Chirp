@@ -7,7 +7,7 @@ import { useOrganization } from "@clerk/nextjs";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { usePathname, useRouter } from "next/navigation";
 import { useUploadThing } from "@/lib/uploadthing";
-import { isBase64Image } from "@/lib/utils";
+import { extractHashtags, extractMentions } from "@/lib/utils";
 import Image from "next/image";
 
 import {
@@ -24,7 +24,6 @@ import { Input } from "@/components/ui/input";
 
 import { ChirpValidation } from "@/lib/validations/chirp";
 import { createChirp } from "@/lib/actions/chirp.actions";
-import { extractHashtags, extractMentions } from "@/lib/utils";
 import { getUsersByUsernames } from "@/lib/actions/mention.actions";
 
 interface Props {
@@ -100,9 +99,9 @@ function PostChirp({ userId, communityId, placeholder }: Props) {
       author: userId,
       communityId: communityId || (organization ? organization.id : null),
       path: pathname,
-      hashtags: hashtags,
-      mentions: mentions,
-      attachments: attachments,
+      hashtags,
+      mentions,
+      attachments,
     });
 
     router.push("/");
@@ -180,7 +179,7 @@ function PostChirp({ userId, communityId, placeholder }: Props) {
                     <div>
                       <span className='text-green-400'>Mentions: </span>
                       {extractMentions(chirpText).map((mention, index) => (
-                        <span key={index} className='text-green-500 mr-2'>@{mention}</span>
+                        <span key={index} className='mr-2 text-green-500'>@{mention}</span>
                       ))}
                     </div>
                   )}
@@ -195,7 +194,7 @@ function PostChirp({ userId, communityId, placeholder }: Props) {
           <label className='text-base-semibold text-light-2'>
             Add Attachments
           </label>
-          <div className='flex gap-3 items-center'>
+          <div className='flex items-center gap-3'>
             <Input
               type='file'
               accept='image/*,audio/*,video/*,.pdf,.doc,.docx,.txt'
@@ -212,7 +211,7 @@ function PostChirp({ userId, communityId, placeholder }: Props) {
           {files.length > 0 && (
             <div className='mt-3 space-y-2'>
               {files.map((file, index) => (
-                <div key={index} className='flex items-center gap-3 p-3 bg-dark-3 rounded-lg'>
+                <div key={index} className='flex items-center gap-3 rounded-lg bg-dark-3 p-3'>
                   {file.type.startsWith('image/') && filePreview[index] ? (
                     <Image
                       src={filePreview[index]}

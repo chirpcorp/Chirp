@@ -1,7 +1,10 @@
 "use client";
 
-import { useEffect, useCallback } from 'react';
+import { useCallback } from 'react';
 import NotificationService from '@/lib/services/notificationService';
+
+// Define the missing type
+type NotificationPermission = 'default' | 'denied' | 'granted';
 
 interface NotificationPayload {
   type: 'like' | 'comment' | 'mention' | 'follow' | 'follow-request';

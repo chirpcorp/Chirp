@@ -22,7 +22,7 @@ function Bottombar() {
               key={link.label}
               className={`bottombar_link ${isActive ? "bg-primary-500" : ""}`}
             >
-              <div className="relative h-5 w-5">
+              <div className="relative size-5">
                 <Image
                   src={link.imgURL}
                   alt={link.label}

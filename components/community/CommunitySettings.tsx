@@ -1,8 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { useUploadThing } from "@/lib/uploadthing";
+
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -35,9 +37,12 @@ interface Props {
 
 function CommunitySettings({ community, currentUserId, isCreator }: Props) {
   const router = useRouter();
+  const { startUpload } = useUploadThing("media");
   const [isLoading, setIsLoading] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
+  const [files, setFiles] = useState<File[]>([]);
+  const [imagePreview, setImagePreview] = useState(community.image);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -55,6 +60,38 @@ function CommunitySettings({ community, currentUserId, isCreator }: Props) {
   // Rules state
   const [rules, setRules] = useState(community.rules || []);
   const [newRule, setNewRule] = useState({ title: "", description: "" });
+
+  const handleImageChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    e.preventDefault();
+
+    const fileReader = new FileReader();
+
+    if (e.target.files && e.target.files.length > 0) {
+      const file = e.target.files[0];
+      setFiles(Array.from(e.target.files));
+
+      if (!file.type.includes("image")) {
+        alert("Please select an image file (JPEG, PNG, GIF, etc.)");
+        return;
+      }
+
+      fileReader.onload = async (event) => {
+        const imageDataUrl = event.target?.result?.toString() || "";
+        setImagePreview(imageDataUrl);
+      };
+
+      fileReader.readAsDataURL(file);
+    }
+  };
+
+  const handleImageClick = () => {
+    const fileInput = document.getElementById('community-image-input') as HTMLInputElement;
+    if (fileInput) {
+      fileInput.click();
+    }
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
@@ -78,11 +115,27 @@ function CommunitySettings({ community, currentUserId, isCreator }: Props) {
   const handleSaveSettings = async () => {
     setIsLoading(true);
     try {
+      let imageUrl = community.image;
+      
+      // Handle image upload if files are selected
+      if (files.length > 0) {
+        console.log("Uploading community image...");
+        const imgRes = await startUpload(files);
+        
+        if (imgRes && imgRes[0]?.url) {
+          console.log("Image upload successful:", imgRes[0].url);
+          imageUrl = imgRes[0].url;
+        } else {
+          console.warn("Image upload failed, keeping current image");
+        }
+      }
+
       await updateCommunityInfo({
         communityId: community.id,
         name: formData.name,
         username: formData.username,
         description: formData.description,
+        image: imageUrl,
         isPrivate: formData.isPrivate,
         tags: formData.tags.split(",").map(tag => tag.trim()).filter(tag => tag),
         rules,
@@ -134,59 +187,101 @@ function CommunitySettings({ community, currentUserId, isCreator }: Props) {
     <div className="space-y-8">
       <h2 className="text-heading4-medium text-light-1">Community Settings</h2>
 
+      {/* Community Image */}
+      <div className="rounded-xl bg-dark-2 p-6">
+        <h3 className="mb-4 text-body-semibold text-light-1">Community Image</h3>
+        
+        <div className="flex items-center gap-6">
+          <div 
+            className="relative cursor-pointer"
+            onClick={handleImageClick}
+          >
+            <Image
+              src={imagePreview}
+              alt="Community image"
+              width={96}
+              height={96}
+              className="rounded-full object-cover"
+            />
+            <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black bg-opacity-30 opacity-0 transition-opacity hover:opacity-100">
+              <span className="text-sm text-white">Change</span>
+            </div>
+          </div>
+          
+          <div>
+            <p className="mb-2 text-small-regular text-light-2">
+              Click on the image to upload a new one
+            </p>
+            <input
+              id="community-image-input"
+              type="file"
+              accept="image/*"
+              onChange={handleImageChange}
+              className="hidden"
+            />
+            <Button
+              onClick={handleImageClick}
+              className="bg-gray-600 hover:bg-gray-700"
+            >
+              Upload New Image
+            </Button>
+          </div>
+        </div>
+      </div>
+
       {/* Basic Information */}
-      <div className="bg-dark-2 p-6 rounded-xl">
-        <h3 className="text-body-semibold text-light-1 mb-4">Basic Information</h3>
+      <div className="rounded-xl bg-dark-2 p-6">
+        <h3 className="mb-4 text-body-semibold text-light-1">Basic Information</h3>
         
         <div className="space-y-4">
           <div>
-            <label className="text-small-semibold text-light-2 mb-2 block">
+            <label className="mb-2 block text-small-semibold text-light-2">
               Community Name
             </label>
             <Input
               name="name"
               value={formData.name}
               onChange={handleInputChange}
-              className="bg-dark-3 border-dark-4 text-light-1"
+              className="border-dark-4 bg-dark-3 text-light-1"
               placeholder="Enter community name"
             />
           </div>
 
           <div>
-            <label className="text-small-semibold text-light-2 mb-2 block">
+            <label className="mb-2 block text-small-semibold text-light-2">
               Username (c/{formData.username})
             </label>
             <Input
               name="username"
               value={formData.username}
               onChange={handleInputChange}
-              className="bg-dark-3 border-dark-4 text-light-1"
+              className="border-dark-4 bg-dark-3 text-light-1"
               placeholder="Enter username"
             />
           </div>
 
           <div>
-            <label className="text-small-semibold text-light-2 mb-2 block">
+            <label className="mb-2 block text-small-semibold text-light-2">
               Description
             </label>
             <Textarea
               name="description"
               value={formData.description}
               onChange={handleInputChange}
-              className="bg-dark-3 border-dark-4 text-light-1 min-h-[100px]"
+              className="min-h-[100px] border-dark-4 bg-dark-3 text-light-1"
               placeholder="Describe your community..."
             />
           </div>
 
           <div>
-            <label className="text-small-semibold text-light-2 mb-2 block">
+            <label className="mb-2 block text-small-semibold text-light-2">
               Tags (comma-separated)
             </label>
             <Input
               name="tags"
               value={formData.tags}
               onChange={handleInputChange}
-              className="bg-dark-3 border-dark-4 text-light-1"
+              className="border-dark-4 bg-dark-3 text-light-1"
               placeholder="technology, discussion, help"
             />
           </div>
@@ -194,8 +289,8 @@ function CommunitySettings({ community, currentUserId, isCreator }: Props) {
       </div>
 
       {/* Privacy Settings */}
-      <div className="bg-dark-2 p-6 rounded-xl">
-        <h3 className="text-body-semibold text-light-1 mb-4">Privacy & Permissions</h3>
+      <div className="rounded-xl bg-dark-2 p-6">
+        <h3 className="mb-4 text-body-semibold text-light-1">Privacy & Permissions</h3>
         
         <div className="space-y-4">
           <div className="flex items-center justify-between">
@@ -210,7 +305,7 @@ function CommunitySettings({ community, currentUserId, isCreator }: Props) {
               name="isPrivate"
               checked={formData.isPrivate}
               onChange={handleInputChange}
-              className="w-5 h-5 rounded bg-dark-3 border-dark-4"
+              className="size-5 rounded border-dark-4 bg-dark-3"
             />
           </div>
 
@@ -226,7 +321,7 @@ function CommunitySettings({ community, currentUserId, isCreator }: Props) {
               name="allowMemberPosts"
               checked={formData.allowMemberPosts}
               onChange={handleInputChange}
-              className="w-5 h-5 rounded bg-dark-3 border-dark-4"
+              className="size-5 rounded border-dark-4 bg-dark-3"
             />
           </div>
 
@@ -242,7 +337,7 @@ function CommunitySettings({ community, currentUserId, isCreator }: Props) {
               name="requireApprovalForPosts"
               checked={formData.requireApprovalForPosts}
               onChange={handleInputChange}
-              className="w-5 h-5 rounded bg-dark-3 border-dark-4"
+              className="size-5 rounded border-dark-4 bg-dark-3"
             />
           </div>
 
@@ -258,51 +353,51 @@ function CommunitySettings({ community, currentUserId, isCreator }: Props) {
               name="showMemberList"
               checked={formData.showMemberList}
               onChange={handleInputChange}
-              className="w-5 h-5 rounded bg-dark-3 border-dark-4"
+              className="size-5 rounded border-dark-4 bg-dark-3"
             />
           </div>
         </div>
       </div>
 
       {/* Community Rules */}
-      <div className="bg-dark-2 p-6 rounded-xl">
-        <h3 className="text-body-semibold text-light-1 mb-4">Community Rules</h3>
+      <div className="rounded-xl bg-dark-2 p-6">
+        <h3 className="mb-4 text-body-semibold text-light-1">Community Rules</h3>
         
         <div className="space-y-4">
           {rules.map((rule, index) => (
-            <div key={index} className="flex items-start justify-between p-3 bg-dark-3 rounded-lg">
+            <div key={index} className="flex items-start justify-between rounded-lg bg-dark-3 p-3">
               <div className="flex-1">
                 <p className="text-small-semibold text-light-2">{index + 1}. {rule.title}</p>
                 {rule.description && (
-                  <p className="text-tiny-medium text-gray-1 mt-1">{rule.description}</p>
+                  <p className="mt-1 text-tiny-medium text-gray-1">{rule.description}</p>
                 )}
               </div>
               <Button
                 onClick={() => handleRemoveRule(index)}
-                className="bg-red-600 hover:bg-red-700 text-white px-2 py-1 text-xs ml-3"
+                className="ml-3 bg-red-600 px-2 py-1 text-xs text-white hover:bg-red-700"
               >
                 Remove
               </Button>
             </div>
           ))}
 
-          <div className="space-y-3 p-3 bg-dark-3 rounded-lg">
+          <div className="space-y-3 rounded-lg bg-dark-3 p-3">
             <Input
               value={newRule.title}
               onChange={(e) => setNewRule(prev => ({ ...prev, title: e.target.value }))}
               placeholder="Rule title"
-              className="bg-dark-4 border-dark-4 text-light-1"
+              className="border-dark-4 bg-dark-4 text-light-1"
             />
             <Textarea
               value={newRule.description}
               onChange={(e) => setNewRule(prev => ({ ...prev, description: e.target.value }))}
               placeholder="Rule description (optional)"
-              className="bg-dark-4 border-dark-4 text-light-1 min-h-[60px]"
+              className="min-h-[60px] border-dark-4 bg-dark-4 text-light-1"
             />
             <Button
               onClick={handleAddRule}
               disabled={!newRule.title.trim()}
-              className="bg-primary-500 hover:bg-primary-600 w-full"
+              className="hover:bg-primary-600 w-full bg-primary-500"
             >
               Add Rule
             </Button>
@@ -315,7 +410,7 @@ function CommunitySettings({ community, currentUserId, isCreator }: Props) {
         <Button
           onClick={handleSaveSettings}
           disabled={isLoading}
-          className="bg-primary-500 hover:bg-primary-600 px-8"
+          className="hover:bg-primary-600 bg-primary-500 px-8"
         >
           {isLoading ? "Saving..." : "Save Changes"}
         </Button>
@@ -323,7 +418,7 @@ function CommunitySettings({ community, currentUserId, isCreator }: Props) {
         {isCreator && (
           <Button
             onClick={() => setShowDeleteConfirm(true)}
-            className="bg-red-600 hover:bg-red-700 px-8"
+            className="bg-red-600 px-8 hover:bg-red-700"
           >
             Delete Community
           </Button>
@@ -332,19 +427,19 @@ function CommunitySettings({ community, currentUserId, isCreator }: Props) {
 
       {/* Delete Confirmation Modal */}
       {showDeleteConfirm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-dark-2 p-6 rounded-xl max-w-md w-full mx-4">
-            <h3 className="text-heading4-medium text-light-1 mb-4">Delete Community</h3>
-            <p className="text-body-regular text-gray-1 mb-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="mx-4 w-full max-w-md rounded-xl bg-dark-2 p-6">
+            <h3 className="mb-4 text-heading4-medium text-light-1">Delete Community</h3>
+            <p className="text-body-regular mb-4 text-gray-1">
               This action cannot be undone. All posts, members, and data will be permanently lost.
             </p>
-            <p className="text-small-semibold text-light-2 mb-2">
-              Type "{community.name}" to confirm:
+            <p className="mb-2 text-small-semibold text-light-2">
+              Type &quot;{community.name}&quit; to confirm:
             </p>
             <Input
               value={deleteConfirmText}
               onChange={(e) => setDeleteConfirmText(e.target.value)}
-              className="bg-dark-3 border-dark-4 text-light-1 mb-4"
+              className="mb-4 border-dark-4 bg-dark-3 text-light-1"
               placeholder={community.name}
             />
             <div className="flex justify-end gap-3">

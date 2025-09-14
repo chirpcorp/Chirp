@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useDebouncedCallback } from "use-debounce";
 import Image from "next/image";
 import Link from "next/link";
@@ -116,7 +116,7 @@ export default function EnhancedSearchbar({
     <div className="search-container relative w-full max-w-md">
       {/* Search Input */}
       <div className="relative">
-        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+        <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
           <Image
             src="/assets/search-gray.svg"
             alt="search"
@@ -130,27 +130,27 @@ export default function EnhancedSearchbar({
           value={query}
           onChange={handleInputChange}
           placeholder={placeholder}
-          className="pl-12 pr-10 py-3 w-full bg-dark-3 border-dark-4 text-light-1 placeholder-gray-1 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 rounded-full transition-all duration-200"
+          className="w-full rounded-full border-dark-4 bg-dark-3 py-3 pl-12 pr-10 text-light-1 placeholder-gray-1 transition-all duration-200 focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
         />
         {loading && (
-          <div className="absolute inset-y-0 right-0 pr-4 flex items-center">
-            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary-500"></div>
+          <div className="absolute inset-y-0 right-0 flex items-center pr-4">
+            <div className="size-5 animate-spin rounded-full border-b-2 border-primary-500"></div>
           </div>
         )}
       </div>
 
       {/* Search Results Dropdown */}
       {showDropdown && (query.trim() !== '') && (results.users.length > 0 || results.hashtags.length > 0) && (
-        <div className="absolute top-full left-0 right-0 mt-2 bg-dark-2 border border-dark-4 rounded-xl shadow-lg z-50 max-h-96 overflow-y-auto">
+        <div className="absolute inset-x-0 top-full z-50 mt-2 max-h-96 overflow-y-auto rounded-xl border border-dark-4 bg-dark-2 shadow-lg">
           {/* Users Section */}
           {results.users.length > 0 && (
             <div className="p-3">
-              <h3 className="text-small-semibold text-gray-1 mb-2">People</h3>
+              <h3 className="mb-2 text-small-semibold text-gray-1">People</h3>
               {results.users.map((user) => (
                 <Link
                   key={user._id}
                   href={`/profile/${user.id}`}
-                  className="flex items-center gap-3 p-2 hover:bg-dark-3 rounded-lg transition-colors"
+                  className="flex items-center gap-3 rounded-lg p-2 transition-colors hover:bg-dark-3"
                   onClick={() => setShowDropdown(false)}
                 >
                   <Image
@@ -160,11 +160,11 @@ export default function EnhancedSearchbar({
                     height={32}
                     className="rounded-full object-cover"
                   />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-body-semibold text-light-1 truncate">
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-body-semibold text-light-1">
                       {user.name}
                     </p>
-                    <p className="text-small-regular text-gray-1 truncate">
+                    <p className="truncate text-small-regular text-gray-1">
                       @{user.username}
                     </p>
                   </div>
@@ -175,17 +175,17 @@ export default function EnhancedSearchbar({
 
           {/* Hashtags Section */}
           {results.hashtags.length > 0 && (
-            <div className="p-3 border-t border-dark-4">
-              <h3 className="text-small-semibold text-gray-1 mb-2">Topics</h3>
+            <div className="border-t border-dark-4 p-3">
+              <h3 className="mb-2 text-small-semibold text-gray-1">Topics</h3>
               {results.hashtags.map((item, index) => (
                 <Link
                   key={index}
                   href={`/hashtag/${item.hashtag}`}
-                  className="flex items-center gap-3 p-2 hover:bg-dark-3 rounded-lg transition-colors"
+                  className="flex items-center gap-3 rounded-lg p-2 transition-colors hover:bg-dark-3"
                   onClick={() => setShowDropdown(false)}
                 >
-                  <div className="w-8 h-8 bg-primary-500 rounded-full flex items-center justify-center">
-                    <span className="text-white text-sm font-bold">#</span>
+                  <div className="flex size-8 items-center justify-center rounded-full bg-primary-500">
+                    <span className="text-sm font-bold text-white">#</span>
                   </div>
                   <div className="flex-1">
                     <p className="text-body-semibold text-light-1">
@@ -203,8 +203,8 @@ export default function EnhancedSearchbar({
           {/* No results */}
           {results.users.length === 0 && results.hashtags.length === 0 && !loading && (
             <div className="p-6 text-center">
-              <p className="text-gray-1">No results found for "{query}"</p>
-              <p className="text-small-regular text-gray-1 mt-1">
+              <p className="text-gray-1">No results found for &quot;{query}&quot;</p>
+              <p className="mt-1 text-small-regular text-gray-1">
                 Try searching for people, hashtags, or topics
               </p>
             </div>

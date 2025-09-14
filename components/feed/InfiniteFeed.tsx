@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 
 import { useState, useEffect } from "react";
@@ -15,7 +16,7 @@ export function InfiniteFeed({ userId, initialPosts = [] }: Props) {
   const [posts, setPosts] = useState(initialPosts);
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
-  const [page, setPage] = useState(1);
+  const [, setPage] = useState(1);
   
   const { ref, inView } = useInView({
     threshold: 0.1,
@@ -94,17 +95,17 @@ export function InfiniteFeed({ userId, initialPosts = [] }: Props) {
       )}
       
       {hasMore && (
-        <div ref={ref} className="h-10 flex items-center justify-center">
+        <div ref={ref} className="flex h-10 items-center justify-center">
           {loading && (
-            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary-500"></div>
+            <div className="size-6 animate-spin rounded-full border-b-2 border-primary-500"></div>
           )}
         </div>
       )}
       
       {!hasMore && posts.length > 0 && (
-        <div className="text-center py-8">
-          <p className="text-gray-1">You're all caught up! 🎉</p>
-          <p className="text-gray-1 text-sm mt-2">
+        <div className="py-8 text-center">
+          <p className="text-gray-1">You&apos;re all caught up! 🎉</p>
+          <p className="text-sm mt-2 text-gray-1">
             Check back later for more updates
           </p>
         </div>

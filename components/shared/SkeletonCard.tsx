@@ -1,30 +1,30 @@
 export function SkeletonCard() {
   return (
-    <div className="bg-dark-2 p-7 rounded-xl animate-pulse">
+    <div className="animate-pulse rounded-xl bg-dark-2 p-7">
       <div className="flex gap-4">
         {/* Avatar skeleton */}
-        <div className="w-11 h-11 bg-dark-3 rounded-full"></div>
+        <div className="size-11 rounded-full bg-dark-3"></div>
         
         <div className="flex-1 space-y-3">
           {/* Header skeleton */}
           <div className="space-y-2">
-            <div className="h-4 bg-dark-3 rounded w-1/4"></div>
-            <div className="h-3 bg-dark-3 rounded w-1/6"></div>
+            <div className="h-4 w-1/4 rounded bg-dark-3"></div>
+            <div className="h-3 w-1/6 rounded bg-dark-3"></div>
           </div>
           
           {/* Content skeleton */}
           <div className="space-y-2">
-            <div className="h-4 bg-dark-3 rounded w-full"></div>
-            <div className="h-4 bg-dark-3 rounded w-3/4"></div>
-            <div className="h-4 bg-dark-3 rounded w-1/2"></div>
+            <div className="h-4 w-full rounded bg-dark-3"></div>
+            <div className="h-4 w-3/4 rounded bg-dark-3"></div>
+            <div className="h-4 w-1/2 rounded bg-dark-3"></div>
           </div>
           
           {/* Actions skeleton */}
-          <div className="flex gap-6 mt-4">
-            <div className="h-6 w-6 bg-dark-3 rounded"></div>
-            <div className="h-6 w-6 bg-dark-3 rounded"></div>
-            <div className="h-6 w-6 bg-dark-3 rounded"></div>
-            <div className="h-6 w-6 bg-dark-3 rounded"></div>
+          <div className="mt-4 flex gap-6">
+            <div className="size-6 rounded bg-dark-3"></div>
+            <div className="size-6 rounded bg-dark-3"></div>
+            <div className="size-6 rounded bg-dark-3"></div>
+            <div className="size-6 rounded bg-dark-3"></div>
           </div>
         </div>
       </div>

@@ -58,46 +58,46 @@ export default function NotificationDemo() {
   }
 
   return (
-    <div className="bg-dark-2 rounded-xl p-6 mb-6">
-      <h3 className="text-heading4-medium text-light-1 mb-4">
+    <div className="mb-6 rounded-xl bg-dark-2 p-6">
+      <h3 className="mb-4 text-heading4-medium text-light-1">
         🔔 Notification Demo
       </h3>
-      <p className="text-small-regular text-gray-1 mb-4">
-        Test the notification system with the buttons below. Make sure you've enabled notifications in Settings first!
+      <p className="mb-4 text-small-regular text-gray-1">
+        Test the notification system with the buttons below. Make sure you&apos;ve enabled notifications in Settings first!
       </p>
       
       <div className="flex flex-wrap gap-3">
         <button
           onClick={requestPermission}
-          className="px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg text-sm transition-colors"
+          className="hover:bg-primary-600 text-sm rounded-lg bg-primary-500 px-4 py-2 text-white transition-colors"
         >
           Enable Notifications
         </button>
         
         <button
           onClick={sendTestNotification}
-          className="px-4 py-2 bg-secondary-500 hover:bg-secondary-600 text-white rounded-lg text-sm transition-colors"
+          className="hover:bg-secondary-600 text-sm rounded-lg bg-secondary-500 px-4 py-2 text-white transition-colors"
         >
           Test General
         </button>
         
         <button
           onClick={handleTestLikeNotification}
-          className="px-4 py-2 bg-blue hover:bg-blue/80 text-white rounded-lg text-sm transition-colors"
+          className="text-sm rounded-lg bg-blue px-4 py-2 text-white transition-colors hover:bg-blue/80"
         >
           Test Like ❤️
         </button>
         
         <button
           onClick={handleTestCommentNotification}
-          className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg text-sm transition-colors"
+          className="text-sm rounded-lg bg-green-500 px-4 py-2 text-white transition-colors hover:bg-green-600"
         >
           Test Comment 💬
         </button>
         
         <button
           onClick={handleTestMentionNotification}
-          className="px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-lg text-sm transition-colors"
+          className="text-sm rounded-lg bg-purple-500 px-4 py-2 text-white transition-colors hover:bg-purple-600"
         >
           Test Mention 🏷️
         </button>

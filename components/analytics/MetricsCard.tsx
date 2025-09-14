@@ -11,8 +11,8 @@ export function MetricsCard({ title, value, change, icon, isPercentage }: Props)
   const isNegative = change && change < 0;
   
   return (
-    <div className="bg-dark-2 rounded-xl p-6 border border-dark-4">
-      <div className="flex items-center justify-between mb-4">
+    <div className="rounded-xl border border-dark-4 bg-dark-2 p-6">
+      <div className="mb-4 flex items-center justify-between">
         <span className="text-2xl">{icon}</span>
         {change !== undefined && (
           <div className={`flex items-center gap-1 text-small-medium ${
@@ -29,7 +29,7 @@ export function MetricsCard({ title, value, change, icon, isPercentage }: Props)
       </div>
       
       <div>
-        <h3 className="text-heading2-bold text-light-1 mb-1">
+        <h3 className="mb-1 text-heading2-bold text-light-1">
           {typeof value === 'number' ? value.toLocaleString() : value}
         </h3>
         <p className="text-small-regular text-gray-1">{title}</p>

@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import { formatDateString } from "@/lib/utils";
-import { joinCommunity, leaveCommunity, inviteToJoinCommunity } from "@/lib/actions/community.actions";
+import { joinCommunity, leaveCommunity } from "@/lib/actions/community.actions";
 
 interface Props {
   communityId: string;
@@ -92,7 +92,7 @@ function CommunityHeader({
   };
 
   return (
-    <div className="flex w-full flex-col rounded-xl bg-dark-2 p-0 overflow-hidden">
+    <div className="flex w-full flex-col overflow-hidden rounded-xl bg-dark-2 p-0">
       {/* Cover Image */}
       {coverImage && (
         <div className="relative h-48 w-full">
@@ -110,7 +110,7 @@ function CommunityHeader({
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-4">
             <div className="relative">
-              <div className="relative h-20 w-20">
+              <div className="relative size-20">
                 <Image
                   src={image}
                   alt={name}
@@ -119,7 +119,7 @@ function CommunityHeader({
                 />
               </div>
               {isPrivate && (
-                <div className="absolute -top-2 -right-2 bg-gray-600 rounded-full p-2">
+                <div className="absolute -right-2 -top-2 rounded-full bg-gray-600 p-2">
                   <Image src='/assets/lock.svg' alt='private' width={12} height={12} />
                 </div>
               )}
@@ -128,7 +128,7 @@ function CommunityHeader({
             <div className="flex flex-col">
               <h1 className="text-heading3-bold text-light-1">{name}</h1>
               <p className="text-body-regular text-gray-1">c/{username}</p>
-              <div className="flex items-center gap-4 mt-2">
+              <div className="mt-2 flex items-center gap-4">
                 <span className="text-small-regular text-gray-1">
                   {memberCount} member{memberCount !== 1 ? 's' : ''}
                 </span>
@@ -136,7 +136,7 @@ function CommunityHeader({
                   {postCount} post{postCount !== 1 ? 's' : ''}
                 </span>
                 {isPrivate && (
-                  <span className="text-small-regular text-gray-1 flex items-center gap-1">
+                  <span className="flex items-center gap-1 text-small-regular text-gray-1">
                     <Image src='/assets/lock.svg' alt='private' width={12} height={12} />
                     Private
                   </span>
@@ -153,8 +153,8 @@ function CommunityHeader({
                 disabled={isLoading}
                 className={`${
                   isMember 
-                    ? 'bg-gray-600 hover:bg-gray-700 text-white' 
-                    : 'bg-primary-500 hover:bg-primary-600 text-white'
+                    ? 'bg-gray-600 text-white hover:bg-gray-700' 
+                    : 'hover:bg-primary-600 bg-primary-500 text-white'
                 } px-6`}
               >
                 {isLoading ? '...' : isMember ? 'Leave' : 'Join'}
@@ -164,7 +164,7 @@ function CommunityHeader({
             {(isAdmin || isCreator) && (
               <Button
                 onClick={() => setShowInviteModal(true)}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-6"
+                className="bg-blue-600 hover:bg-blue-700 px-6 text-white"
               >
                 Invite
               </Button>
@@ -172,7 +172,7 @@ function CommunityHeader({
             
             {(isAdmin || isCreator) && (
               <Link href={`/communities/${communityId}/edit`}>
-                <Button className="bg-gray-600 hover:bg-gray-700 text-white px-4">
+                <Button className="bg-gray-600 px-4 text-white hover:bg-gray-700">
                   <Image src='/assets/edit.svg' alt='edit' width={16} height={16} />
                 </Button>
               </Link>
@@ -193,7 +193,7 @@ function CommunityHeader({
             {tags.map((tag, index) => (
               <span 
                 key={index}
-                className="bg-dark-3 text-light-2 px-3 py-1 rounded-full text-small-regular"
+                className="rounded-full bg-dark-3 px-3 py-1 text-small-regular text-light-2"
               >
                 #{tag}
               </span>
@@ -220,7 +220,7 @@ function CommunityHeader({
           
           {currentUserRole && (
             <div className="flex items-center gap-2">
-              <span className="text-primary-500 font-semibold capitalize">
+              <span className="font-semibold capitalize text-primary-500">
                 {currentUserRole}
               </span>
             </div>
@@ -229,14 +229,14 @@ function CommunityHeader({
 
         {/* Community Rules Preview */}
         {rules.length > 0 && (
-          <div className="mt-4 p-4 bg-dark-3 rounded-lg">
-            <h4 className="text-body-semibold text-light-1 mb-2">Community Rules</h4>
+          <div className="mt-4 rounded-lg bg-dark-3 p-4">
+            <h4 className="mb-2 text-body-semibold text-light-1">Community Rules</h4>
             <div className="space-y-2">
               {rules.slice(0, 3).map((rule, index) => (
                 <div key={index} className="text-small-regular text-light-2">
                   <span className="font-semibold">{index + 1}. {rule.title}</span>
                   {rule.description && (
-                    <p className="text-gray-1 mt-1">{rule.description}</p>
+                    <p className="mt-1 text-gray-1">{rule.description}</p>
                   )}
                 </div>
               ))}
@@ -252,10 +252,10 @@ function CommunityHeader({
 
       {/* Invite Modal Placeholder - will implement later */}
       {showInviteModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-dark-2 p-6 rounded-xl max-w-md w-full mx-4">
-            <h3 className="text-heading4-medium text-light-1 mb-4">Invite Members</h3>
-            <p className="text-body-regular text-gray-1 mb-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="mx-4 w-full max-w-md rounded-xl bg-dark-2 p-6">
+            <h3 className="mb-4 text-heading4-medium text-light-1">Invite Members</h3>
+            <p className="text-body-regular mb-4 text-gray-1">
               Share the community link or search for users to invite.
             </p>
             <div className="flex justify-end gap-3">
@@ -265,7 +265,7 @@ function CommunityHeader({
               >
                 Cancel
               </Button>
-              <Button className="bg-primary-500 hover:bg-primary-600">
+              <Button className="hover:bg-primary-600 bg-primary-500">
                 Copy Link
               </Button>
             </div>

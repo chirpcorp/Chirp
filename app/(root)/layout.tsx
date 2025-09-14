@@ -36,7 +36,7 @@ export default function RootLayout({
           <HydrationFix />
           <Topbar />
 
-          <main className='flex flex-row w-full'>
+          <main className='flex w-full flex-row'>
             <LeftSidebar />
             <section className='main-container flex-1'>
               <div className='w-full max-w-4xl pb-16 md:pb-0'>{children}</div>

@@ -88,7 +88,7 @@ export const POST = async (request: Request) => {
   if (eventType === "organization.created") {
     // Resource: https://clerk.com/docs/reference/backend-api/tag/Organizations#operation/CreateOrganization
     // Show what evnt?.data sends from above resource
-    const { id, name, slug, logo_url, image_url, created_by } =
+    const { name, slug, logo_url, image_url, created_by } =
       evnt?.data ?? {};
 
     try {
@@ -209,11 +209,11 @@ export const POST = async (request: Request) => {
     try {
       // Resource: https://clerk.com/docs/reference/backend-api/tag/Organizations#operation/UpdateOrganization
       // Show what evnt?.data sends from above resource
-      const { id, logo_url, name, slug } = evnt?.data;
+      const { logo_url, name, slug } = evnt?.data;
       console.log("updated", evnt?.data);
 
       await updateCommunityInfo({
-        communityId: id as string,
+        communityId: evnt?.data.id as string,
         name: name as string,
         username: slug as string,
         image: logo_url as string,
@@ -237,11 +237,10 @@ export const POST = async (request: Request) => {
     try {
       // Resource: https://clerk.com/docs/reference/backend-api/tag/Organizations#operation/DeleteOrganization
       // Show what evnt?.data sends from above resource
-      const { id } = evnt?.data;
       console.log("deleted", evnt?.data);
 
       await deleteCommunity({
-        communityId: id as string,
+        communityId: evnt?.data.id as string,
         creatorId: "system", // System deletion
         path: "/communities",
       });

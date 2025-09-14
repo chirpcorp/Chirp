@@ -17,7 +17,7 @@ async function FollowersPage({ params }: { params: Promise<{ id: string }> }) {
 
   return (
     <section>
-      <div className='flex items-center gap-3 mb-6'>
+      <div className='mb-6 flex items-center gap-3'>
         <Link href={`/profile/${id}`}>
           <Image
             src='/assets/back.svg'

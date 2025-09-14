@@ -3,12 +3,15 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useNotifications } from '@/hooks/useNotifications';
 
+type NotificationPermission = 'default' | 'denied' | 'granted';
+
 interface NotificationContextType {
   sendNotification: (payload: any) => Promise<void>;
   requestPermission: () => Promise<NotificationPermission>;
   sendTestNotification: () => Promise<void>;
   updateSettings: (settings: any) => void;
   getSettings: () => any;
+  getStatus: () => any;
   permissions: NotificationPermission;
   isSupported: boolean;
 }
@@ -29,7 +32,7 @@ export function NotificationProvider({ children, currentUserId }: NotificationPr
   useEffect(() => {
     if (typeof window !== 'undefined' && 'Notification' in window) {
       setIsSupported(true);
-      setPermissions(Notification.permission);
+      setPermissions(Notification.permission as NotificationPermission);
     }
   }, []);
 
@@ -45,6 +48,7 @@ export function NotificationProvider({ children, currentUserId }: NotificationPr
     sendTestNotification: notifications.sendTestNotification,
     updateSettings: notifications.updateSettings,
     getSettings: notifications.getSettings,
+    getStatus: notifications.getStatus,
     permissions,
     isSupported,
   };

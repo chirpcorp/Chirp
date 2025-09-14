@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useUser } from "@clerk/nextjs";
 import Image from "next/image";
 import Link from "next/link";
@@ -25,13 +25,7 @@ function FollowRequests() {
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<Set<string>>(new Set());
 
-  useEffect(() => {
-    if (user) {
-      fetchRequests();
-    }
-  }, [user]);
-
-  const fetchRequests = async () => {
+  const fetchRequests = useCallback(async () => {
     try {
       if (!user) return;
       const followRequests = await getFollowRequests(user.id);
@@ -41,7 +35,13 @@ function FollowRequests() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
+
+  useEffect(() => {
+    if (user) {
+      fetchRequests();
+    }
+  }, [user, fetchRequests]);
 
   const handleAccept = async (requestId: string, requesterUserId: string) => {
     setActionLoading(prev => {
@@ -85,15 +85,15 @@ function FollowRequests() {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center py-8">
-        <div className="w-8 h-8 border-2 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
+      <div className="flex items-center justify-center py-8">
+        <div className="size-8 animate-spin rounded-full border-2 border-primary-500 border-t-transparent"></div>
       </div>
     );
   }
 
   if (requests.length === 0) {
     return (
-      <div className="text-center py-8">
+      <div className="py-8 text-center">
         <Image
           src="/assets/empty.svg"
           alt="No requests"
@@ -101,9 +101,9 @@ function FollowRequests() {
           height={64}
           className="mx-auto mb-4 opacity-50"
         />
-        <h3 className="text-heading4-medium text-light-1 mb-2">No follow requests</h3>
+        <h3 className="mb-2 text-heading4-medium text-light-1">No follow requests</h3>
         <p className="text-base-regular text-gray-1">
-          When someone requests to follow your private account, they'll appear here.
+          When someone requests to follow your private account, they will appear here.
         </p>
       </div>
     );
@@ -111,12 +111,12 @@ function FollowRequests() {
 
   return (
     <div className="space-y-4">
-      <h3 className="text-heading4-medium text-light-1 mb-4">
+      <h3 className="mb-4 text-heading4-medium text-light-1">
         Follow Requests ({requests.length})
       </h3>
       
       {requests.map((request) => (
-        <div key={request._id} className="flex items-center justify-between p-4 bg-dark-2 rounded-lg">
+        <div key={request._id} className="flex items-center justify-between rounded-lg bg-dark-2 p-4">
           <div className="flex items-center gap-3">
             <Link href={`/profile/${request.user.id}`}>
               <Image
@@ -129,7 +129,7 @@ function FollowRequests() {
             </Link>
             <div>
               <Link href={`/profile/${request.user.id}`}>
-                <h4 className="text-body-semibold text-light-1 hover:text-primary-500 transition-colors">
+                <h4 className="text-body-semibold text-light-1 transition-colors hover:text-primary-500">
                   {request.user.name}
                 </h4>
               </Link>
@@ -144,10 +144,10 @@ function FollowRequests() {
             <button
               onClick={() => handleReject(request._id, request.user.id)}
               disabled={actionLoading.has(request._id)}
-              className="px-4 py-2 text-sm bg-dark-3 text-light-2 rounded-lg hover:bg-dark-4 transition-colors disabled:opacity-50"
+              className="text-sm rounded-lg bg-dark-3 px-4 py-2 text-light-2 transition-colors hover:bg-dark-4 disabled:opacity-50"
             >
               {actionLoading.has(request._id) ? (
-                <div className="w-4 h-4 border border-current border-t-transparent rounded-full animate-spin"></div>
+                <div className="size-4 animate-spin rounded-full border border-current border-t-transparent"></div>
               ) : (
                 'Decline'
               )}
@@ -155,10 +155,10 @@ function FollowRequests() {
             <button
               onClick={() => handleAccept(request._id, request.user.id)}
               disabled={actionLoading.has(request._id)}
-              className="px-4 py-2 text-sm bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors disabled:opacity-50"
+              className="text-sm hover:bg-primary-600 rounded-lg bg-primary-500 px-4 py-2 text-white transition-colors disabled:opacity-50"
             >
               {actionLoading.has(request._id) ? (
-                <div className="w-4 h-4 border border-white border-t-transparent rounded-full animate-spin"></div>
+                <div className="size-4 animate-spin rounded-full border border-white border-t-transparent"></div>
               ) : (
                 'Accept'
               )}

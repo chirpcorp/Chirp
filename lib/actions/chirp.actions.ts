@@ -5,8 +5,7 @@ import { revalidatePath } from "next/cache";
 import { connectToDB } from "../mongoose";
 import { resolveUserObjectId } from "../utils/userIdResolver";
 import { 
-  triggerMentionNotifications, 
-  extractMentionedUserIds,
+  triggerMentionNotifications,
   triggerCommentNotification,
   triggerLikeNotification 
 } from "../notifications/triggers";

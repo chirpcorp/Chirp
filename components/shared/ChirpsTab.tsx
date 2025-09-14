@@ -1,4 +1,3 @@
-import { redirect } from "next/navigation";
 
 import { fetchCommunityPosts } from "@/lib/actions/community.actions";
 import { fetchUserPosts, fetchUserReplies } from "@/lib/actions/user.actions";
@@ -87,9 +86,7 @@ async function ChirpsTab({ currentUserId, accountId, accountType, tabType = "chi
             parentId={chirp.parentId}
             content={chirp.text}
             author={
-              userInfo
-                ? userInfo
-                : {
+              userInfo || {
                     name: chirp.author.name,
                     image: chirp.author.image,
                     id: chirp.author.id,

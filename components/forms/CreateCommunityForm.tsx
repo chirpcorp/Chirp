@@ -1,14 +1,13 @@
 "use client";
 
 import * as z from "zod";
-import { useState } from "react";
+import { useState , ChangeEvent } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { usePathname, useRouter } from "next/navigation";
 import { useUploadThing } from "@/lib/uploadthing";
 import { isBase64Image } from "@/lib/utils";
 import Image from "next/image";
-import { ChangeEvent } from "react";
 
 import {
   Form,
@@ -24,11 +23,12 @@ import { Textarea } from "@/components/ui/textarea";
 
 import { createCommunity } from "@/lib/actions/community.actions";
 
+// Updated validation schema to make image and description optional
 const CommunityValidation = z.object({
   name: z.string().min(3, { message: "Minimum 3 characters." }).max(50, { message: "Maximum 50 characters." }),
   username: z.string().min(3, { message: "Minimum 3 characters." }).max(30, { message: "Maximum 30 characters." }),
-  description: z.string().min(3, { message: "Minimum 3 characters." }).max(500, { message: "Maximum 500 characters." }),
-  image: z.string().url().nonempty(),
+  description: z.string().max(500, { message: "Maximum 500 characters." }).optional(),
+  image: z.string().optional(),
   isPrivate: z.boolean().optional().default(false),
 });
 
@@ -43,6 +43,7 @@ function CreateCommunityForm({ userId }: Props) {
   const [files, setFiles] = useState<File[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string>("");
+  const [uploadDebug, setUploadDebug] = useState<string>("");
 
   const form = useForm({
     resolver: zodResolver(CommunityValidation),
@@ -59,31 +60,58 @@ function CreateCommunityForm({ userId }: Props) {
     try {
       setIsLoading(true);
       setError("");
+      setUploadDebug("Starting community creation...");
       
-      const blob = values.image;
+      const blob = values.image || "";
+      
+      // Check if image has changed (is base64 data URL)
       const hasImageChanged = isBase64Image(blob);
-
+      setUploadDebug(prev => prev + `\nHas image changed: ${hasImageChanged}`);
+      
       if (hasImageChanged) {
+        setUploadDebug(prev => prev + "\nImage has changed, uploading...");
+        console.log("Image has changed, uploading...");
         const imgRes = await startUpload(files);
-        if (imgRes && imgRes[0].url) {
+        
+        setUploadDebug(prev => prev + `\nUpload result: ${JSON.stringify(imgRes)}`);
+        console.log("Upload result:", imgRes);
+        
+        if (imgRes && imgRes[0]?.url) {
+          setUploadDebug(prev => prev + `\nUpload successful: ${imgRes[0].url}`);
+          console.log("Upload successful:", imgRes[0].url);
           values.image = imgRes[0].url;
+        } else {
+          setUploadDebug(prev => prev + "\nUpload failed or returned no URL, using default image");
+          console.warn("Upload failed or returned no URL, using default image");
+          values.image = "/assets/community-default.svg";
         }
+      } else if (!values.image) {
+        // If no image was provided at all, use default
+        setUploadDebug(prev => prev + "\nNo image provided, using default");
+        console.log("No image provided, using default");
+        values.image = "/assets/community-default.svg";
       }
+
+      setUploadDebug(prev => prev + `\nCreating community with image: ${values.image}`);
+      console.log("Creating community with image:", values.image);
 
       await createCommunity({
         name: values.name,
         username: values.username,
-        description: values.description,
+        description: values.description || "",
         image: values.image,
         creatorId: userId,
-        isPrivate: values.isPrivate,
+        isPrivate: values.isPrivate || false,
         path: pathname,
       });
 
+      setUploadDebug(prev => prev + "\nCommunity created successfully!");
+      console.log("Community created successfully!");
       router.push("/communities");
     } catch (error: any) {
-      setError(error.message || "Failed to create community. Please try again.");
       console.error("Community creation error:", error);
+      setUploadDebug(prev => prev + `\nError: ${error.message || "Unknown error"}`);
+      setError(error.message || "Failed to create community. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -101,14 +129,26 @@ function CreateCommunityForm({ userId }: Props) {
       const file = e.target.files[0];
       setFiles(Array.from(e.target.files));
 
-      if (!file.type.includes("image")) return;
+      if (!file.type.includes("image")) {
+        setError("Please select an image file (JPEG, PNG, GIF, etc.)");
+        return;
+      }
 
       fileReader.onload = async (event) => {
         const imageDataUrl = event.target?.result?.toString() || "";
         fieldChange(imageDataUrl);
+        setUploadDebug(prev => prev + `\nFile read complete, size: ${imageDataUrl.length} chars`);
       };
 
       fileReader.readAsDataURL(file);
+    }
+  };
+
+  const handleImageClick = () => {
+    // Only trigger file input when explicitly clicking the image area
+    const fileInput = document.querySelector('.account-form_image-input') as HTMLInputElement;
+    if (fileInput) {
+      fileInput.click();
     }
   };
 
@@ -123,7 +163,10 @@ function CreateCommunityForm({ userId }: Props) {
           name='image'
           render={({ field }) => (
             <FormItem className='flex items-center gap-4'>
-              <FormLabel className='account-form_image-label'>
+              <FormLabel 
+                className='account-form_image-label cursor-pointer'
+                onClick={handleImageClick}
+              >
                 {field.value ? (
                   <Image
                     src={field.value}
@@ -134,21 +177,23 @@ function CreateCommunityForm({ userId }: Props) {
                     className='rounded-full object-contain'
                   />
                 ) : (
-                  <Image
-                    src='/assets/community.svg'
-                    alt='community_icon'
-                    width={24}
-                    height={24}
-                    className='object-contain'
-                  />
+                  <div className="flex size-24 items-center justify-center rounded-full bg-dark-3">
+                    <Image
+                      src='/assets/community.svg'
+                      alt='community_icon'
+                      width={24}
+                      height={24}
+                      className='object-contain'
+                    />
+                  </div>
                 )}
               </FormLabel>
               <FormControl className='flex-1 text-base-semibold text-gray-200'>
                 <Input
                   type='file'
                   accept='image/*'
-                  placeholder='Add community image'
-                  className='account-form_image-input'
+                  placeholder='Add community image (optional)'
+                  className='account-form_image-input hidden'
                   onChange={(e) => handleImage(e, field.onChange)}
                 />
               </FormControl>
@@ -162,7 +207,7 @@ function CreateCommunityForm({ userId }: Props) {
           render={({ field }) => (
             <FormItem className='flex w-full flex-col gap-3'>
               <FormLabel className='text-base-semibold text-light-2'>
-                Community Name
+                Community Name *
               </FormLabel>
               <FormControl>
                 <Input
@@ -183,7 +228,7 @@ function CreateCommunityForm({ userId }: Props) {
           render={({ field }) => (
             <FormItem className='flex w-full flex-col gap-3'>
               <FormLabel className='text-base-semibold text-light-2'>
-                Username
+                Username *
               </FormLabel>
               <FormControl>
                 <Input
@@ -204,7 +249,7 @@ function CreateCommunityForm({ userId }: Props) {
           render={({ field }) => (
             <FormItem className='flex w-full flex-col gap-3'>
               <FormLabel className='text-base-semibold text-light-2'>
-                About
+                About (Optional)
               </FormLabel>
               <FormControl>
                 <Textarea
@@ -227,8 +272,8 @@ function CreateCommunityForm({ userId }: Props) {
               <FormControl>
                 <input
                   type='checkbox'
-                  className='h-4 w-4 rounded border-gray-300 text-primary-500 focus:ring-primary-500'
-                  checked={field.value}
+                  className='size-4 rounded border-gray-300 text-primary-500 focus:ring-primary-500'
+                  checked={field.value || false}
                   onChange={field.onChange}
                 />
               </FormControl>
@@ -244,8 +289,14 @@ function CreateCommunityForm({ userId }: Props) {
         </Button>
         
         {error && (
-          <div className='mt-4 p-3 bg-red-500/10 border border-red-500 rounded-lg'>
-            <p className='text-red-400 text-sm'>{error}</p>
+          <div className='mt-4 rounded-lg border border-red-500 bg-red-500/10 p-3'>
+            <p className='text-sm text-red-400'>{error}</p>
+          </div>
+        )}
+        
+        {uploadDebug && (
+          <div className='border-blue-500 bg-blue-500/10 mt-4 rounded-lg border p-3'>
+            <p className='text-sm whitespace-pre-wrap text-blue-400'>{uploadDebug}</p>
           </div>
         )}
       </form>

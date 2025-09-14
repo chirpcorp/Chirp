@@ -26,13 +26,13 @@ async function AnalyticsPage() {
       {/* Header */}
       <div className="border-b border-dark-4 pb-6">
         <h1 className="head-text text-left">Analytics</h1>
-        <p className="text-body-regular text-gray-1 mt-2">
+        <p className="text-body-regular mt-2 text-gray-1">
           Track your performance and audience engagement
         </p>
       </div>
 
       {/* Overview Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
         <MetricsCard
           title="Total Posts"
           value={userMetrics30Days.totalPosts}
@@ -61,7 +61,7 @@ async function AnalyticsPage() {
       </div>
 
       {/* Main Dashboard */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* Main chart area */}
         <div className="lg:col-span-2">
           <EngagementChart userId={user.id} />
@@ -70,8 +70,8 @@ async function AnalyticsPage() {
         {/* Side metrics */}
         <div className="space-y-6">
           {/* Top performing content */}
-          <div className="bg-dark-2 rounded-xl p-6">
-            <h3 className="text-heading4-medium text-light-1 mb-4">
+          <div className="rounded-xl bg-dark-2 p-6">
+            <h3 className="mb-4 text-heading4-medium text-light-1">
               Top Content
             </h3>
             <div className="space-y-3">
@@ -82,19 +82,19 @@ async function AnalyticsPage() {
           </div>
 
           {/* Audience insights */}
-          <div className="bg-dark-2 rounded-xl p-6">
-            <h3 className="text-heading4-medium text-light-1 mb-4">
+          <div className="rounded-xl bg-dark-2 p-6">
+            <h3 className="mb-4 text-heading4-medium text-light-1">
               Audience Insights
             </h3>
             <div className="space-y-4">
               <div>
-                <div className="flex justify-between text-small-medium mb-2">
+                <div className="mb-2 flex justify-between text-small-medium">
                   <span className="text-gray-1">Most active time</span>
                   <span className="text-light-1">2:00 PM - 4:00 PM</span>
                 </div>
               </div>
               <div>
-                <div className="flex justify-between text-small-medium mb-2">
+                <div className="mb-2 flex justify-between text-small-medium">
                   <span className="text-gray-1">Peak day</span>
                   <span className="text-light-1">Tuesday</span>
                 </div>
@@ -103,8 +103,8 @@ async function AnalyticsPage() {
           </div>
 
           {/* Platform comparison */}
-          <div className="bg-dark-2 rounded-xl p-6">
-            <h3 className="text-heading4-medium text-light-1 mb-4">
+          <div className="rounded-xl bg-dark-2 p-6">
+            <h3 className="mb-4 text-heading4-medium text-light-1">
               Platform Stats
             </h3>
             <div className="space-y-3">

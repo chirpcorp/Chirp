@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { getTrendingTopics, getSuggestedUsers } from "@/lib/algorithms/recommendation";
+import { getTrendingTopics } from "@/lib/algorithms/recommendation";
 import { getPlatformMetrics } from "@/lib/algorithms/analytics";
+import Image from "next/image";
 
 interface TrendingTopic {
   hashtag: string;
@@ -26,7 +27,7 @@ interface PlatformMetrics {
 
 function TrendingSidebar() {
   const [trends, setTrends] = useState<TrendingTopic[]>([]);
-  const [suggestions, setSuggestions] = useState<any[]>([]);
+  const [suggestions,] = useState<any[]>([]);
   const [platformMetrics, setPlatformMetrics] = useState<PlatformMetrics | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -65,13 +66,13 @@ function TrendingSidebar() {
   if (loading) {
     return (
       <div className="sticky top-4 space-y-4">
-        <div className="bg-dark-2 rounded-xl p-4">
+        <div className="rounded-xl bg-dark-2 p-4">
           <div className="animate-pulse space-y-3">
-            <div className="h-6 bg-dark-3 rounded w-3/4"></div>
+            <div className="h-6 w-3/4 rounded bg-dark-3"></div>
             {[...Array(5)].map((_, i) => (
               <div key={i} className="space-y-2">
-                <div className="h-4 bg-dark-3 rounded w-1/2"></div>
-                <div className="h-3 bg-dark-3 rounded w-1/3"></div>
+                <div className="h-4 w-1/2 rounded bg-dark-3"></div>
+                <div className="h-3 w-1/3 rounded bg-dark-3"></div>
               </div>
             ))}
           </div>
@@ -83,9 +84,9 @@ function TrendingSidebar() {
   return (
     <div className="sticky top-4 space-y-4">
       {/* Trending Topics */}
-      <div className="bg-dark-2 rounded-xl p-4">
-        <h2 className="text-heading4-medium text-light-1 mb-4">
-          What's happening
+      <div className="rounded-xl bg-dark-2 p-4">
+        <h2 className="mb-4 text-heading4-medium text-light-1">
+          What&apos;s happening
         </h2>
         
         <div className="space-y-3">
@@ -93,7 +94,7 @@ function TrendingSidebar() {
             <Link
               key={trend.hashtag}
               href={`/hashtag/${trend.hashtag}`}
-              className="block hover:bg-dark-3 rounded-lg p-2 -m-2 transition-colors"
+              className="-m-2 block rounded-lg p-2 transition-colors hover:bg-dark-3"
             >
               <div className="flex items-start justify-between">
                 <div className="flex-1">
@@ -114,7 +115,7 @@ function TrendingSidebar() {
           
           <Link
             href="/explore/"
-            className="text-primary-500 text-small-medium hover:underline"
+            className="text-small-medium text-primary-500 hover:underline"
           >
             Show more
           </Link>
@@ -123,8 +124,8 @@ function TrendingSidebar() {
 
       {/* Who to follow */}
       {suggestions.length > 0 && (
-        <div className="bg-dark-2 rounded-xl p-4">
-          <h2 className="text-heading4-medium text-light-1 mb-4">
+        <div className="rounded-xl bg-dark-2 p-4">
+          <h2 className="mb-4 text-heading4-medium text-light-1">
             Who to follow
           </h2>
           
@@ -133,25 +134,25 @@ function TrendingSidebar() {
               <div key={user._id} className="flex items-center justify-between">
                 <Link 
                   href={`/profile/${user.id}`}
-                  className="flex items-center gap-3 flex-1"
+                  className="flex flex-1 items-center gap-3"
                 >
-                  <img
+                  <Image
                     src={user.image}
                     alt={user.name}
-                    className="w-10 h-10 rounded-full object-cover"
+                    className="size-10 rounded-full object-cover"
                   />
-                  <div className="flex-1 min-w-0">
+                  <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-1">
-                      <p className="text-body-semibold text-light-1 truncate">
+                      <p className="truncate text-body-semibold text-light-1">
                         {user.name}
                       </p>
                       {user.verified && (
-                        <div className="w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center">
-                          <span className="text-white text-xs">✓</span>
+                        <div className="bg-blue-500 flex size-4 items-center justify-center rounded-full">
+                          <span className="text-xs text-white">✓</span>
                         </div>
                       )}
                     </div>
-                    <p className="text-small-regular text-gray-1 truncate">
+                    <p className="truncate text-small-regular text-gray-1">
                       @{user.username}
                     </p>
                     {user.mutualFollows > 0 && (
@@ -162,7 +163,7 @@ function TrendingSidebar() {
                   </div>
                 </Link>
                 
-                <button className="bg-light-1 text-dark-1 px-4 py-1.5 rounded-full text-small-semibold hover:bg-light-2 transition-colors">
+                <button className="rounded-full bg-light-1 px-4 py-1.5 text-small-semibold text-dark-1 transition-colors hover:bg-light-2">
                   Follow
                 </button>
               </div>
@@ -170,7 +171,7 @@ function TrendingSidebar() {
             
             <Link
               href="/explore/people"
-              className="text-primary-500 text-small-medium hover:underline"
+              className="text-small-medium text-primary-500 hover:underline"
             >
               Show more
             </Link>
@@ -179,8 +180,8 @@ function TrendingSidebar() {
       )}
 
       {/* Platform stats */}
-      <div className="bg-dark-2 rounded-xl p-4">
-        <h2 className="text-heading4-medium text-light-1 mb-4">
+      <div className="rounded-xl bg-dark-2 p-4">
+        <h2 className="mb-4 text-heading4-medium text-light-1">
           Platform Activity
         </h2>
         
@@ -207,7 +208,7 @@ function TrendingSidebar() {
       </div>
 
       {/* Footer */}
-      <div className="bg-dark-2 rounded-xl p-4">
+      <div className="rounded-xl bg-dark-2 p-4">
         <div className="flex flex-wrap gap-2 text-tiny-medium text-gray-1">
           <Link href="#/terms" className="hover:underline">Terms of Service</Link>
           <Link href="#/privacy" className="hover:underline">Privacy Policy</Link>
@@ -215,7 +216,7 @@ function TrendingSidebar() {
           <Link href="#/accessibility" className="hover:underline">Accessibility</Link>
           <Link href="#/ads" className="hover:underline">Ads info</Link>
         </div>
-        <p className="text-tiny-medium text-gray-1 mt-2">
+        <p className="mt-2 text-tiny-medium text-gray-1">
           © 2025 Chirp Corp.
         </p>
       </div>

@@ -7,15 +7,12 @@ import { useOrganization } from "@clerk/nextjs";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { usePathname, useRouter } from "next/navigation";
 import { useUploadThing } from "@/lib/uploadthing";
-import { isBase64Image } from "@/lib/utils";
-import Image from "next/image";
 
 import {
   Form,
   FormControl,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
@@ -28,6 +25,7 @@ import { extractHashtags, extractMentions, extractCommunityReferences } from "@/
 import { getUsersByUsernames } from "@/lib/actions/mention.actions";
 import { getCommunitiesByUsernames } from "@/lib/actions/community.actions";
 import { moderateContent } from "@/lib/algorithms/recommendation";
+import Image from "next/image";
 
 interface Props {
   userId: string;
@@ -50,8 +48,6 @@ function EnhancedPostChirp({ userId }: Props) {
   const [isDraft, setIsDraft] = useState(false);
   const [error, setError] = useState("");
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [mentions, setMentions] = useState<any[]>([]);
-  const [showMentions, setShowMentions] = useState(false);
   const [cursorPosition, setCursorPosition] = useState(0);
   
   const { startUpload, isUploading } = useUploadThing("media", {
@@ -63,8 +59,7 @@ function EnhancedPostChirp({ userId }: Props) {
       console.error("Upload error details:", {
         message: error.message,
         name: error.name,
-        cause: error.cause,
-        digest: error.digest
+        cause: error.cause
       });
       setError(`Upload failed: ${error.message}`);
     },
@@ -204,12 +199,12 @@ function EnhancedPostChirp({ userId }: Props) {
       const newChirp = await createChirp({
         text: values.chirp,
         author: JSON.parse(userId), // Use parsed userId
-        communityId: organization ? organization.id : null,
-        path: pathname,
-        hashtags: hashtags,
+        communityId: organization?.id ?? "",
+        path: pathname || "/", // Fix: provide default value when pathname is null
+        hashtags,
         mentions: mentionsList,
         communityTags: communityTagsList,
-        attachments: attachments,
+        attachments,
       });
 
       console.log("Chirp created successfully:", newChirp);
@@ -234,18 +229,6 @@ function EnhancedPostChirp({ userId }: Props) {
     
     setChirpText(text);
     setCursorPosition(position);
-    
-    // Check for mentions
-    const words = text.split(' ');
-    const currentWord = words.find(word => 
-      text.slice(0, position).endsWith(word) && word.startsWith('@')
-    );
-    
-    if (currentWord && currentWord.length > 1) {
-      setShowMentions(true);
-    } else {
-      setShowMentions(false);
-    }
     
     // Update all form fields
     form.setValue("chirp", text);
@@ -408,7 +391,7 @@ function EnhancedPostChirp({ userId }: Props) {
     const { file, preview, id } = fileWithPreview;
     
     return (
-      <div key={id} className='relative bg-dark-3 rounded-lg p-3'>
+      <div key={id} className='relative rounded-lg bg-dark-3 p-3'>
         {file.type.startsWith('image/') && preview ? (
           <div className="relative">
             <Image
@@ -416,12 +399,12 @@ function EnhancedPostChirp({ userId }: Props) {
               alt={`Preview ${index}`}
               width={150}
               height={150}
-              className='rounded object-cover w-full h-32'
+              className='h-32 w-full rounded object-cover'
             />
             <button
               type='button'
               onClick={() => removeFile(id)}
-              className='absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 transition-colors'
+              className='absolute -right-2 -top-2 flex size-6 items-center justify-center rounded-full bg-red-500 text-xs text-white transition-colors hover:bg-red-600'
             >
               ×
             </button>
@@ -430,13 +413,13 @@ function EnhancedPostChirp({ userId }: Props) {
           <div className="relative">
             <video
               src={preview}
-              className='rounded w-full h-32 object-cover'
+              className='h-32 w-full rounded object-cover'
               controls
             />
             <button
               type='button'
               onClick={() => removeFile(id)}
-              className='absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 transition-colors'
+              className='absolute -right-2 -top-2 flex size-6 items-center justify-center rounded-full bg-red-500 text-xs text-white transition-colors hover:bg-red-600'
             >
               ×
             </button>
@@ -448,8 +431,8 @@ function EnhancedPostChirp({ userId }: Props) {
                file.type.includes('pdf') ? '📄' : 
                file.type.includes('doc') ? '📝' : '📎'}
             </div>
-            <div className="flex-1 min-w-0">
-              <p className='text-sm text-light-1 truncate'>{file.name}</p>
+            <div className="min-w-0 flex-1">
+              <p className='text-sm truncate text-light-1'>{file.name}</p>
               <p className='text-xs text-gray-1'>
                 {(file.size / 1024 / 1024).toFixed(2)} MB
               </p>
@@ -457,7 +440,7 @@ function EnhancedPostChirp({ userId }: Props) {
             <button
               type='button'
               onClick={() => removeFile(id)}
-              className='text-red-500 hover:text-red-400 flex-shrink-0 transition-colors'
+              className='flex-shrink-0 text-red-500 transition-colors hover:text-red-400'
             >
               ×
             </button>
@@ -468,7 +451,7 @@ function EnhancedPostChirp({ userId }: Props) {
   };
 
   return (
-    <div className="bg-dark-2 rounded-xl p-6 border border-dark-4">
+    <div className="rounded-xl border border-dark-4 bg-dark-2 p-6">
       <Form {...form}>
         <form
           className='flex flex-col gap-6'
@@ -476,9 +459,9 @@ function EnhancedPostChirp({ userId }: Props) {
         >
           {/* User info */}
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-dark-3 rounded-full"></div>
+            <div className="size-12 rounded-full bg-dark-3"></div>
             <div>
-              <p className="text-body-semibold text-light-1">What's happening?</p>
+              <p className="text-body-semibold text-light-1">What&#39;s happening?</p>
               <p className="text-small-regular text-gray-1">
                 Share your thoughts with the community
               </p>
@@ -498,7 +481,7 @@ function EnhancedPostChirp({ userId }: Props) {
                     value={chirpText}
                     onChange={handleTextChange}
                     placeholder="What's happening? Use #hashtags, @mentions, and c/communities"
-                    className="no-focus border-none bg-transparent text-light-1 text-lg resize-none placeholder:text-gray-1"
+                    className="no-focus text-lg resize-none border-none bg-transparent text-light-1 placeholder:text-gray-1"
                     style={{ minHeight: '120px' }}
                     disabled={isLoading}
                   />
@@ -513,8 +496,8 @@ function EnhancedPostChirp({ userId }: Props) {
                   }`}>
                     {remainingChars}
                   </div>
-                  <div className="w-8 h-8 relative">
-                    <svg className="w-8 h-8 transform -rotate-90" viewBox="0 0 32 32">
+                  <div className="relative size-8">
+                    <svg className="size-8 -rotate-90 transform" viewBox="0 0 32 32">
                       <circle
                         cx="16"
                         cy="16"
@@ -550,12 +533,12 @@ function EnhancedPostChirp({ userId }: Props) {
 
           {/* Upload Progress */}
           {isUploading && (
-            <div className="w-full bg-dark-3 rounded-full h-2">
+            <div className="h-2 w-full rounded-full bg-dark-3">
               <div 
-                className="bg-primary-500 h-2 rounded-full transition-all duration-300"
+                className="h-2 rounded-full bg-primary-500 transition-all duration-300"
                 style={{ width: `${uploadProgress}%` }}
               />
-              <p className="text-xs text-gray-1 mt-1">Uploading files... {uploadProgress}%</p>
+              <p className="mt-1 text-xs text-gray-1">Uploading files... {uploadProgress}%</p>
             </div>
           )}
 
@@ -566,7 +549,7 @@ function EnhancedPostChirp({ userId }: Props) {
                 <div className='flex flex-wrap gap-2'>
                   <span className='text-blue-400'>Hashtags:</span>
                   {extractHashtags(chirpText).map((tag, index) => (
-                    <span key={index} className='bg-blue-500/20 text-blue-400 px-2 py-1 rounded-full text-xs'>
+                    <span key={index} className='bg-blue-500/20 rounded-full px-2 py-1 text-xs text-blue-400'>
                       #{tag}
                     </span>
                   ))}
@@ -576,7 +559,7 @@ function EnhancedPostChirp({ userId }: Props) {
                 <div className='flex flex-wrap gap-2'>
                   <span className='text-green-400'>Mentions:</span>
                   {extractMentions(chirpText).map((mention, index) => (
-                    <span key={index} className='bg-green-500/20 text-green-400 px-2 py-1 rounded-full text-xs'>
+                    <span key={index} className='rounded-full bg-green-500/20 px-2 py-1 text-xs text-green-400'>
                       @{mention}
                     </span>
                   ))}
@@ -586,7 +569,7 @@ function EnhancedPostChirp({ userId }: Props) {
                 <div className='flex flex-wrap gap-2'>
                   <span className='text-purple-400'>Communities:</span>
                   {extractCommunityReferences(chirpText).map((community, index) => (
-                    <span key={index} className='bg-purple-500/20 text-purple-400 px-2 py-1 rounded-full text-xs'>
+                    <span key={index} className='rounded-full bg-purple-500/20 px-2 py-1 text-xs text-purple-400'>
                       c/{community}
                     </span>
                   ))}
@@ -597,7 +580,7 @@ function EnhancedPostChirp({ userId }: Props) {
           
           {/* File previews */}
           {files.length > 0 && (
-            <div className='grid grid-cols-2 md:grid-cols-3 gap-3'>
+            <div className='grid grid-cols-2 gap-3 md:grid-cols-3'>
               {files.map((fileWithPreview, index) => renderFilePreview(fileWithPreview, index))}
             </div>
           )}
@@ -606,7 +589,7 @@ function EnhancedPostChirp({ userId }: Props) {
           <div className="flex items-center justify-between border-t border-dark-4 pt-4">
             <div className="flex items-center gap-4">
               {/* File upload */}
-              <label className={`cursor-pointer hover:bg-dark-3 p-2 rounded-full transition-colors ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}>
+              <label className={`cursor-pointer rounded-full p-2 transition-colors hover:bg-dark-3 ${isLoading ? 'cursor-not-allowed opacity-50' : ''}`}>
                 <Image src='/assets/attach.svg' alt='attach' width={20} height={20} />
                 <Input
                   type='file'
@@ -625,7 +608,7 @@ function EnhancedPostChirp({ userId }: Props) {
                     key={emoji}
                     type="button"
                     onClick={() => insertEmoji(emoji)}
-                    className="hover:bg-dark-3 p-1 rounded transition-colors text-lg disabled:opacity-50"
+                    className="text-lg rounded p-1 transition-colors hover:bg-dark-3 disabled:opacity-50"
                     disabled={isLoading}
                   >
                     {emoji}
@@ -652,7 +635,7 @@ function EnhancedPostChirp({ userId }: Props) {
                 type="button"
                 variant="outline"
                 onClick={saveDraft}
-                className="text-gray-1 border-dark-4 hover:bg-dark-3"
+                className="border-dark-4 text-gray-1 hover:bg-dark-3"
                 disabled={isLoading}
               >
                 Save Draft
@@ -662,11 +645,11 @@ function EnhancedPostChirp({ userId }: Props) {
               <Button 
                 type='submit' 
                 disabled={isLoading || !chirpText.trim() || remainingChars < 0 || isUploading}
-                className='bg-primary-500 hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed'
+                className='hover:bg-primary-600 bg-primary-500 disabled:cursor-not-allowed disabled:opacity-50'
               >
                 {isLoading || isUploading ? (
                   <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    <div className="size-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
                     {isUploading ? 'Uploading...' : 'Posting...'}
                   </div>
                 ) : (
@@ -678,15 +661,15 @@ function EnhancedPostChirp({ userId }: Props) {
           
           {/* Error message */}
           {error && (
-            <div className='bg-red-500/10 border border-red-500 rounded-lg p-3'>
-              <p className='text-red-400 text-sm'>{error}</p>
+            <div className='rounded-lg border border-red-500 bg-red-500/10 p-3'>
+              <p className='text-sm text-red-400'>{error}</p>
             </div>
           )}
           
           {/* Draft saved message */}
           {isDraft && (
-            <div className='bg-green-500/10 border border-green-500 rounded-lg p-3'>
-              <p className='text-green-400 text-sm'>Draft saved successfully!</p>
+            <div className='rounded-lg border border-green-500 bg-green-500/10 p-3'>
+              <p className='text-sm text-green-400'>Draft saved successfully!</p>
             </div>
           )}
         </form>

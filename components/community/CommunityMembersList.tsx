@@ -91,7 +91,7 @@ function CommunityMembersList({
     };
 
     return (
-      <span className={`px-2 py-1 rounded-full text-xs font-semibold ${roleColors[role as keyof typeof roleColors] || roleColors.member}`}>
+      <span className={`rounded-full px-2 py-1 text-xs font-semibold ${roleColors[role as keyof typeof roleColors] || roleColors.member}`}>
         {role}
       </span>
     );
@@ -110,7 +110,7 @@ function CommunityMembersList({
 
   if (members.length === 0) {
     return (
-      <div className="text-center py-8">
+      <div className="py-8 text-center">
         <p className="text-body-regular text-gray-1">No members found.</p>
       </div>
     );
@@ -132,7 +132,7 @@ function CommunityMembersList({
         {sortedMembers.map((member) => (
           <div
             key={member._id}
-            className="flex items-center justify-between p-4 bg-dark-2 rounded-xl"
+            className="flex items-center justify-between rounded-xl bg-dark-2 p-4"
           >
             <div className="flex items-center gap-4">
               <Link href={`/profile/${member.id}`} className="relative">
@@ -168,7 +168,7 @@ function CommunityMembersList({
                   <Button
                     onClick={() => handlePromoteToAdmin(member.id, member.name)}
                     disabled={loadingMember === member.id}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 text-xs"
+                    className="bg-blue-600 hover:bg-blue-700 px-3 py-1 text-xs text-white"
                   >
                     {loadingMember === member.id ? '...' : 'Promote'}\n                  </Button>
                 )}
@@ -176,7 +176,7 @@ function CommunityMembersList({
                 <Button
                   onClick={() => handleRemoveMember(member.id, member.name)}
                   disabled={loadingMember === member.id}
-                  className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 text-xs"
+                  className="bg-red-600 px-3 py-1 text-xs text-white hover:bg-red-700"
                 >
                   {loadingMember === member.id ? '...' : 'Remove'}
                 </Button>
@@ -185,7 +185,7 @@ function CommunityMembersList({
 
             {/* Show "You" indicator */}
             {member.id === currentUserId && (
-              <span className="text-primary-500 text-small-regular font-semibold">
+              <span className="text-small-regular font-semibold text-primary-500">
                 You
               </span>
             )}

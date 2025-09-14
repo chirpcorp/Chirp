@@ -3,7 +3,12 @@
     "next/core-web-vitals",
     "next",
     "standard",
-    "plugin:tailwindcss/recommended",
     "prettier"
-  ]
+  ],
+  "plugins": ["tailwindcss"],
+  "rules": {
+    "tailwindcss/classnames-order": "warn",
+    "tailwindcss/enforces-shorthand": "warn",
+    "tailwindcss/no-custom-classname": "off"
+  }
 }

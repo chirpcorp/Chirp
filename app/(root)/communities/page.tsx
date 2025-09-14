@@ -34,7 +34,7 @@ async function Page({
       <div className='flex items-center justify-between'>
         <h1 className='head-text'>Communities</h1>
         <Link href='/communities/create'>
-          <Button className='bg-primary-500 hover:bg-primary-600'>
+          <Button className='hover:bg-primary-600 bg-primary-500'>
             Create Community
           </Button>
         </Link>

@@ -31,21 +31,21 @@ async function ExplorePage({
   const activeTab = resolvedSearchParams.tab || "trending";
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="mx-auto max-w-4xl">
       {/* Header */}
-      <div className="border-b border-dark-4 pb-4 mb-6">
+      <div className="mb-6 border-b border-dark-4 pb-4">
         <h1 className="head-text text-left">Explore</h1>
-        <p className="text-body-regular text-gray-1 mt-2">
+        <p className="text-body-regular mt-2 text-gray-1">
           Discover trending topics, interesting people, and popular content
         </p>
         
         {/* Enhanced Search Bar */}
-        <div className="mt-4 mb-4">
+        <div className="my-4">
           <EnhancedSearchbar placeholder="Search people, hashtags, or topics..." />
         </div>
         
         {/* Platform stats */}
-        <div className="flex gap-6 mt-4 text-small-medium text-gray-1">
+        <div className="mt-4 flex gap-6 text-small-medium text-gray-1">
           <span>{platformMetrics.dailyActiveUsers.toLocaleString()} active users today</span>
           <span>{platformMetrics.dailyPosts.toLocaleString()} posts today</span>
           <span>{platformMetrics.totalUsers.toLocaleString()} total users</span>
@@ -53,12 +53,12 @@ async function ExplorePage({
       </div>
 
       {/* Navigation tabs */}
-      <div className="flex gap-6 mb-8 border-b border-dark-4">
+      <div className="mb-8 flex gap-6 border-b border-dark-4">
         <a
           href="/explore?tab=trending"
-          className={`pb-3 px-1 text-body-medium transition-colors ${ 
+          className={`px-1 pb-3 text-body-medium transition-colors ${ 
             activeTab === "trending" 
-              ? "text-light-1 border-b-2 border-primary-500" 
+              ? "border-b-2 border-primary-500 text-light-1" 
               : "text-gray-1 hover:text-light-1"
           }`}
         >
@@ -66,9 +66,9 @@ async function ExplorePage({
         </a>
         <a
           href="/explore?tab=people"
-          className={`pb-3 px-1 text-body-medium transition-colors ${
+          className={`px-1 pb-3 text-body-medium transition-colors ${
             activeTab === "people"
-              ? "text-light-1 border-b-2 border-primary-500"
+              ? "border-b-2 border-primary-500 text-light-1"
               : "text-gray-1 hover:text-light-1"
           }`}
         >
@@ -76,9 +76,9 @@ async function ExplorePage({
         </a>
         <a
           href="/explore?tab=popular"
-          className={`pb-3 px-1 text-body-medium transition-colors ${
+          className={`px-1 pb-3 text-body-medium transition-colors ${
             activeTab === "popular"
-              ? "text-light-1 border-b-2 border-primary-500"
+              ? "border-b-2 border-primary-500 text-light-1"
               : "text-gray-1 hover:text-light-1"
           }`}
         >
@@ -86,9 +86,9 @@ async function ExplorePage({
         </a>
         <a
           href="/explore?tab=live"
-          className={`pb-3 px-1 text-body-medium transition-colors ${
+          className={`px-1 pb-3 text-body-medium transition-colors ${
             activeTab === "live"
-              ? "text-light-1 border-b-2 border-primary-500"
+              ? "border-b-2 border-primary-500 text-light-1"
               : "text-gray-1 hover:text-light-1"
           }`}
         >
@@ -97,7 +97,7 @@ async function ExplorePage({
       </div>
 
       {/* Content based on active tab */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {activeTab === "trending" && (
           <>
             <div className="lg:col-span-2">
@@ -123,8 +123,8 @@ async function ExplorePage({
 
         {activeTab === "live" && (
           <div className="lg:col-span-3">
-            <div className="text-center py-12">
-              <h2 className="text-heading3-bold text-light-1 mb-4">
+            <div className="py-12 text-center">
+              <h2 className="mb-4 text-heading3-bold text-light-1">
                 Live Events Coming Soon! 🚀
               </h2>
               <p className="text-body-regular text-gray-1">

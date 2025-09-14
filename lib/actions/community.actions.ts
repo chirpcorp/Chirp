@@ -57,7 +57,7 @@ export async function createCommunity({
       admins: [creatorObjectId], // Creator is automatically an admin
       members: [{
         user: creatorObjectId,
-        role: 'creator',
+        role: 'admin', // Changed from 'creator' to 'admin' to match valid enum values
         joinedAt: new Date()
       }],
       settings: {

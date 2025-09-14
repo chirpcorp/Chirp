@@ -10,8 +10,8 @@ async function ChatPage() {
   if (!userInfo?.onboarded) redirect("/onboarding");
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[70vh] text-center">
-      <div className="max-w-md mx-auto space-y-6">
+    <div className="flex min-h-[70vh] flex-col items-center justify-center text-center">
+      <div className="mx-auto max-w-md space-y-6">
         {/* Icon */}
         <div className="text-8xl">💬</div>
         
@@ -21,18 +21,18 @@ async function ChatPage() {
         </h1>
         
         {/* Description */}
-        <p className="text-body-regular text-gray-1 leading-relaxed">
-          We're working hard to bring you an amazing chat experience. 
-          Soon you'll be able to have private conversations, group chats, 
+        <p className="text-body-regular leading-relaxed text-gray-1">
+          We&apos;re working hard to bring you an amazing chat experience. 
+          Soon you&apos;ll be able to have private conversations, group chats, 
           and real-time messaging with your fellow chirpers.
         </p>
         
         {/* Features list */}
-        <div className="bg-dark-2 rounded-xl p-6 border border-dark-4">
-          <h3 className="text-heading4-medium text-light-1 mb-4">
-            What's coming:
+        <div className="rounded-xl border border-dark-4 bg-dark-2 p-6">
+          <h3 className="mb-4 text-heading4-medium text-light-1">
+            What&apos;s coming:
           </h3>
-          <ul className="text-left space-y-3 text-body-regular text-gray-1">
+          <ul className="text-body-regular space-y-3 text-left text-gray-1">
             <li className="flex items-center gap-3">
               <span className="text-primary-500">✨</span>
               Direct messaging with other users
@@ -62,7 +62,7 @@ async function ChatPage() {
             Want to be notified when chat launches?
           </p>
           <div className="mt-2">
-            <button className="bg-primary-500 hover:bg-primary-600 text-white px-6 py-3 rounded-full transition-colors">
+            <button className="hover:bg-primary-600 rounded-full bg-primary-500 px-6 py-3 text-white transition-colors">
               Get Notified
             </button>
           </div>

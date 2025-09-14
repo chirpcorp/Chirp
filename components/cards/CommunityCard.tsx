@@ -42,11 +42,11 @@ function CommunityCard({
   creator
 }: Props) {
   return (
-    <article className='community-card bg-dark-2 p-6 rounded-xl border border-dark-4 hover:border-primary-500 transition-colors'>
-      <div className='flex items-start justify-between mb-4'>
+    <article className='community-card rounded-xl border border-dark-4 bg-dark-2 p-6 transition-colors hover:border-primary-500'>
+      <div className='mb-4 flex items-start justify-between'>
         <div className='flex items-center gap-3'>
           <Link href={`/communities/${username || id}`} className='relative'>
-            <div className='relative h-16 w-16'>
+            <div className='relative size-16'>
               <Image
                 src={imgUrl}
                 alt='community_logo'
@@ -54,7 +54,7 @@ function CommunityCard({
                 className='rounded-lg object-cover' // Facebook-style rounded square
               />
               {isPrivate && (
-                <div className='absolute -top-1 -right-1 bg-gray-600 rounded-full p-1'>
+                <div className='absolute -right-1 -top-1 rounded-full bg-gray-600 p-1'>
                   <Image src='/assets/lock.svg' alt='private' width={10} height={10} />
                 </div>
               )}
@@ -63,13 +63,13 @@ function CommunityCard({
 
           <div className='flex-1'>
             <Link href={`/communities/${username || id}`}>
-              <h4 className='text-body-semibold text-light-1 hover:underline line-clamp-1'>
+              <h4 className='line-clamp-1 text-body-semibold text-light-1 hover:underline'>
                 {name}
               </h4>
             </Link>
             <p className='text-small-regular text-gray-1'>c/{username}</p>
             
-            <div className='flex items-center gap-3 mt-1'>
+            <div className='mt-1 flex items-center gap-3'>
               <span className='text-tiny-medium text-gray-1'>
                 {memberCount} member{memberCount !== 1 ? 's' : ''}
               </span>
@@ -89,7 +89,7 @@ function CommunityCard({
 
         {/* Member status badge */}
         {isMember && userRole && (
-          <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+          <span className={`rounded-full px-2 py-1 text-xs font-semibold ${
             userRole === 'creator' ? 'bg-yellow-600 text-white' :
             userRole === 'admin' ? 'bg-red-600 text-white' :
             userRole === 'moderator' ? 'bg-blue-600 text-white' :
@@ -102,18 +102,18 @@ function CommunityCard({
 
       {/* Description */}
       {description && (
-        <p className='text-small-regular text-gray-1 line-clamp-2 mb-3'>
+        <p className='mb-3 line-clamp-2 text-small-regular text-gray-1'>
           {description}
         </p>
       )}
 
       {/* Tags */}
       {tags.length > 0 && (
-        <div className='flex flex-wrap gap-1 mb-4'>
+        <div className='mb-4 flex flex-wrap gap-1'>
           {tags.slice(0, 3).map((tag, index) => (
             <span 
               key={index}
-              className='bg-dark-3 text-light-2 px-2 py-1 rounded text-tiny-medium'
+              className='rounded bg-dark-3 px-2 py-1 text-tiny-medium text-light-2'
             >
               #{tag}
             </span>
@@ -129,7 +129,7 @@ function CommunityCard({
         <Link href={`/communities/${username || id}`}>
           <Button 
             size='sm' 
-            className={`${isMember ? 'bg-primary-500 hover:bg-primary-600' : 'bg-gray-600 hover:bg-gray-700'} text-white`}
+            className={`${isMember ? 'hover:bg-primary-600 bg-primary-500' : 'bg-gray-600 hover:bg-gray-700'} text-white`}
           >
             {isMember ? 'Open' : isPrivate ? 'Request' : 'Join'}
           </Button>
@@ -148,7 +148,7 @@ function CommunityCard({
                   height={24}
                   className={`${
                     index !== 0 && "-ml-2"
-                  } rounded-full object-cover border-2 border-dark-2`}
+                  } rounded-full border-2 border-dark-2 object-cover`}
                 />
               ))}
             </div>

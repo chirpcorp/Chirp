@@ -170,6 +170,13 @@ module.exports = {
           fontWeight: "600",
         },
       ],
+      // Adding standard font sizes that might be missing
+      "xs": [
+        "12px",
+        {
+          lineHeight: "16px",
+        },
+      ],
     },
     extend: {
       colors: {
@@ -188,6 +195,13 @@ module.exports = {
         "light-4": "#5C5C7B",
         "gray-1": "#697C89",
         glassmorphism: "rgba(16, 16, 18, 0.60)",
+        // Adding standard color palette that might be missing
+        "blue-400": "#60a5fa",
+        "blue-300": "#93c5fd",
+        "purple-400": "#a78bfa",
+        "purple-300": "#c4b5fd",
+        "red-500": "#ef4444",
+        "gray-500": "#6b7280",
       },
       boxShadow: {
         "count-badge": "0px 0px 6px 2px rgba(219, 188, 159, 0.30)",

@@ -7,15 +7,15 @@ export function AnalyticsDashboard({ userMetrics, platformMetrics }: Props) {
   return (
     <div className="space-y-6">
       {/* Performance Overview */}
-      <div className="bg-dark-2 rounded-xl p-6">
-        <h3 className="text-heading4-medium text-light-1 mb-6">
+      <div className="rounded-xl bg-dark-2 p-6">
+        <h3 className="mb-6 text-heading4-medium text-light-1">
           Performance Overview
         </h3>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
           <div className="text-center">
             <div className="text-2xl mb-2">📈</div>
-            <h4 className="text-heading4-medium text-light-1 mb-1">
+            <h4 className="mb-1 text-heading4-medium text-light-1">
               {userMetrics.avgEngagementPerPost.toFixed(1)}
             </h4>
             <p className="text-small-regular text-gray-1">
@@ -25,7 +25,7 @@ export function AnalyticsDashboard({ userMetrics, platformMetrics }: Props) {
           
           <div className="text-center">
             <div className="text-2xl mb-2">⚡</div>
-            <h4 className="text-heading4-medium text-light-1 mb-1">
+            <h4 className="mb-1 text-heading4-medium text-light-1">
               {(userMetrics.engagementScore * 100).toFixed(1)}%
             </h4>
             <p className="text-small-regular text-gray-1">
@@ -35,7 +35,7 @@ export function AnalyticsDashboard({ userMetrics, platformMetrics }: Props) {
           
           <div className="text-center">
             <div className="text-2xl mb-2">🎯</div>
-            <h4 className="text-heading4-medium text-light-1 mb-1">
+            <h4 className="mb-1 text-heading4-medium text-light-1">
               {userMetrics.totalShares}
             </h4>
             <p className="text-small-regular text-gray-1">
@@ -46,17 +46,17 @@ export function AnalyticsDashboard({ userMetrics, platformMetrics }: Props) {
       </div>
 
       {/* Insights & Recommendations */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-dark-2 rounded-xl p-6">
-          <h3 className="text-heading4-medium text-light-1 mb-4">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <div className="rounded-xl bg-dark-2 p-6">
+          <h3 className="mb-4 text-heading4-medium text-light-1">
             📊 Insights
           </h3>
           
           <div className="space-y-4">
             <div className="flex items-start gap-3">
-              <div className="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
+              <div className="bg-blue-500 mt-2 size-2 rounded-full"></div>
               <div>
-                <p className="text-small-medium text-light-1 mb-1">
+                <p className="mb-1 text-small-medium text-light-1">
                   Peak Engagement Time
                 </p>
                 <p className="text-small-regular text-gray-1">
@@ -66,9 +66,9 @@ export function AnalyticsDashboard({ userMetrics, platformMetrics }: Props) {
             </div>
             
             <div className="flex items-start gap-3">
-              <div className="w-2 h-2 bg-green-500 rounded-full mt-2"></div>
+              <div className="mt-2 size-2 rounded-full bg-green-500"></div>
               <div>
-                <p className="text-small-medium text-light-1 mb-1">
+                <p className="mb-1 text-small-medium text-light-1">
                   Content Performance
                 </p>
                 <p className="text-small-regular text-gray-1">
@@ -78,27 +78,27 @@ export function AnalyticsDashboard({ userMetrics, platformMetrics }: Props) {
             </div>
             
             <div className="flex items-start gap-3">
-              <div className="w-2 h-2 bg-purple-500 rounded-full mt-2"></div>
+              <div className="mt-2 size-2 rounded-full bg-purple-500"></div>
               <div>
-                <p className="text-small-medium text-light-1 mb-1">
+                <p className="mb-1 text-small-medium text-light-1">
                   Audience Growth
                 </p>
                 <p className="text-small-regular text-gray-1">
-                  You're gaining followers 15% faster than average
+                  You&apos;re gaining followers 15% faster than average
                 </p>
               </div>
             </div>
           </div>
         </div>
 
-        <div className="bg-dark-2 rounded-xl p-6">
-          <h3 className="text-heading4-medium text-light-1 mb-4">
+        <div className="rounded-xl bg-dark-2 p-6">
+          <h3 className="mb-4 text-heading4-medium text-light-1">
             💡 Recommendations
           </h3>
           
           <div className="space-y-4">
-            <div className="bg-dark-3 rounded-lg p-4">
-              <h4 className="text-small-semibold text-light-1 mb-2">
+            <div className="rounded-lg bg-dark-3 p-4">
+              <h4 className="mb-2 text-small-semibold text-light-1">
                 Optimize Posting Time
               </h4>
               <p className="text-small-regular text-gray-1">
@@ -106,8 +106,8 @@ export function AnalyticsDashboard({ userMetrics, platformMetrics }: Props) {
               </p>
             </div>
             
-            <div className="bg-dark-3 rounded-lg p-4">
-              <h4 className="text-small-semibold text-light-1 mb-2">
+            <div className="rounded-lg bg-dark-3 p-4">
+              <h4 className="mb-2 text-small-semibold text-light-1">
                 Use More Hashtags
               </h4>
               <p className="text-small-regular text-gray-1">
@@ -115,8 +115,8 @@ export function AnalyticsDashboard({ userMetrics, platformMetrics }: Props) {
               </p>
             </div>
             
-            <div className="bg-dark-3 rounded-lg p-4">
-              <h4 className="text-small-semibold text-light-1 mb-2">
+            <div className="rounded-lg bg-dark-3 p-4">
+              <h4 className="mb-2 text-small-semibold text-light-1">
                 Engage More
               </h4>
               <p className="text-small-regular text-gray-1">

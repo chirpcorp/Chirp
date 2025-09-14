@@ -36,7 +36,7 @@ function Topbar() {
             }}
           />
         ) : (
-          <div className='py-2 px-4 text-light-2 text-sm'>
+          <div className='text-sm px-4 py-2 text-light-2'>
             {/* Placeholder for the version name in development */}
             <strong>Beta Version</strong>
           </div>

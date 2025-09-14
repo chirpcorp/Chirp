@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import Image from "next/image";
 
 interface User {
   _id: string;
@@ -61,7 +62,7 @@ export function SuggestedUsers({ users }: Props) {
         </h2>
         <Link 
           href="/explore?tab=people" 
-          className="text-primary-500 text-small-medium hover:underline"
+          className="text-small-medium text-primary-500 hover:underline"
         >
           See all
         </Link>
@@ -71,37 +72,37 @@ export function SuggestedUsers({ users }: Props) {
         {users.map((user) => (
           <div
             key={user._id}
-            className="bg-dark-2 rounded-xl p-6 border border-dark-4"
+            className="rounded-xl border border-dark-4 bg-dark-2 p-6"
           >
             <div className="flex items-start justify-between">
               <Link 
                 href={`/profile/${user.id}`}
-                className="flex items-start gap-4 flex-1"
+                className="flex flex-1 items-start gap-4"
               >
-                <img
+                <Image
                   src={user.image}
                   alt={user.name}
-                  className="w-12 h-12 rounded-full object-cover"
+                  className="size-12 rounded-full object-cover"
                 />
                 
                 <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
+                  <div className="mb-1 flex items-center gap-2">
                     <h3 className="text-body-semibold text-light-1">
                       {user.name}
                     </h3>
                     {user.verified && (
-                      <div className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
-                        <span className="text-white text-xs">✓</span>
+                      <div className="bg-blue-500 flex size-5 items-center justify-center rounded-full">
+                        <span className="text-xs text-white">✓</span>
                       </div>
                     )}
                   </div>
                   
-                  <p className="text-small-regular text-gray-1 mb-2">
+                  <p className="mb-2 text-small-regular text-gray-1">
                     @{user.username}
                   </p>
                   
                   {user.bio && (
-                    <p className="text-small-regular text-light-2 mb-3 line-clamp-2">
+                    <p className="mb-3 line-clamp-2 text-small-regular text-light-2">
                       {user.bio}
                     </p>
                   )}
@@ -113,7 +114,7 @@ export function SuggestedUsers({ users }: Props) {
                         {[...Array(Math.min(3, user.mutualFollows))].map((_, i) => (
                           <div
                             key={i}
-                            className="w-5 h-5 bg-dark-3 rounded-full border border-dark-2"
+                            className="size-5 rounded-full border border-dark-2 bg-dark-3"
                           />
                         ))}
                       </div>
@@ -128,14 +129,14 @@ export function SuggestedUsers({ users }: Props) {
               <button
                 onClick={() => handleFollow(user.id)}
                 disabled={isLoading(user.id)}
-                className={`px-4 py-2 rounded-full text-small-semibold transition-colors min-w-[80px] ${
+                className={`min-w-[80px] rounded-full px-4 py-2 text-small-semibold transition-colors ${
                   isFollowing(user.id)
                     ? 'bg-dark-3 text-light-1 hover:bg-red-500 hover:text-white'
                     : 'bg-light-1 text-dark-1 hover:bg-light-2'
-                } ${isLoading(user.id) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                } ${isLoading(user.id) ? 'cursor-not-allowed opacity-50' : ''}`}
               >
                 {isLoading(user.id) ? (
-                  <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin mx-auto"></div>
+                  <div className="mx-auto size-4 animate-spin rounded-full border-2 border-current border-t-transparent"></div>
                 ) : isFollowing(user.id) ? (
                   'Following'
                 ) : (
@@ -148,9 +149,9 @@ export function SuggestedUsers({ users }: Props) {
       </div>
 
       {users.length === 0 && (
-        <div className="text-center py-12">
+        <div className="py-12 text-center">
           <div className="text-4xl mb-4">👥</div>
-          <h3 className="text-heading4-medium text-light-1 mb-2">
+          <h3 className="mb-2 text-heading4-medium text-light-1">
             No suggestions available
           </h3>
           <p className="text-body-regular text-gray-1">

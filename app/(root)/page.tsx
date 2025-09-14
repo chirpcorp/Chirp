@@ -1,7 +1,6 @@
 import { currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 
-import ChirpCard from "@/components/cards/ChirpCard";
 import TrendingSidebar from "@/components/shared/TrendingSidebar";
 import InfiniteFeed from "@/components/feed/InfiniteFeed";
 import { getSmartFeed } from "@/lib/algorithms/postRanking";
@@ -13,7 +12,6 @@ async function Home({
 }: {
   searchParams: Promise<{ [key: string]: string | undefined }>;
 }) {
-  const resolvedSearchParams = await searchParams;
   const user = await currentUser();
   if (!user) return null;
 
@@ -28,35 +26,35 @@ async function Home({
   );
 
   return (
-    <div className="flex gap-6 max-w-7xl mx-auto w-full">
+    <div className="mx-auto flex w-full max-w-7xl gap-6">
       {/* Main Feed */}
-      <div className="flex-1 max-w-2xl">
-        <div className="border-b border-dark-4 pb-4 mb-6">
+      <div className="max-w-2xl flex-1">
+        <div className="mb-6 border-b border-dark-4 pb-4">
           <h1 className='head-text text-left'>Home</h1>
-          <div className="flex gap-4 mt-4">
-            <button className="text-light-1 font-semibold border-b-2 border-primary-500 pb-2">
+          <div className="mt-4 flex gap-4">
+            <button className="border-b-2 border-primary-500 pb-2 font-semibold text-light-1">
               For you
             </button>
-            <button className="text-gray-1 hover:text-light-1 transition-colors pb-2">
+            <button className="pb-2 text-gray-1 transition-colors hover:text-light-1">
               Following
             </button>
-            <button className="text-gray-1 hover:text-light-1 transition-colors pb-2">
+            <button className="pb-2 text-gray-1 transition-colors hover:text-light-1">
               Trending
             </button>
           </div>
         </div>
 
         {initialPosts.length === 0 ? (
-          <div className="text-center py-12">
-            <h2 className="text-heading3-bold text-light-1 mb-4">
+          <div className="py-12 text-center">
+            <h2 className="mb-4 text-heading3-bold text-light-1">
               Welcome to Chirp! 👋
             </h2>
-            <p className="text-body-regular text-gray-1 mb-6">
+            <p className="text-body-regular mb-6 text-gray-1">
               Start following people to see their posts in your feed.
             </p>
             <a 
               href="/explore" 
-              className="bg-primary-500 text-white px-6 py-3 rounded-full hover:bg-primary-600 transition-colors"
+              className="hover:bg-primary-600 rounded-full bg-primary-500 px-6 py-3 text-white transition-colors"
             >
               Explore Chirp
             </a>
@@ -70,7 +68,7 @@ async function Home({
       </div>
 
       {/* Sidebar */}
-      <div className="w-80 hidden lg:block">
+      <div className="hidden w-80 lg:block">
         <TrendingSidebar />
       </div>
     </div>

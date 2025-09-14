@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { SignOutButton, SignedIn, useAuth, useClerk } from "@clerk/nextjs";
+import { SignedIn, useAuth, useClerk } from "@clerk/nextjs";
 
 import { sidebarLinks } from "@/constants";
 
@@ -42,7 +42,7 @@ const LeftSidebar = () => {
                 height={24}
               />
 
-              <p className='text-light-1 md-lg:hidden'>{link.label}</p>
+              <p className='md-lg:hidden text-light-1'>{link.label}</p>
             </Link>
           );
         })}

@@ -2,20 +2,17 @@ import { currentUser } from "@clerk/nextjs/server";
 import Image from "next/image";
 import { redirect } from "next/navigation";
 
-import UserCard from "@/components/cards/UserCard";
 import ChirpsTab from "@/components/shared/ChirpsTab";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import CommunityHeader from "@/components/shared/CommunityHeader";
-import CommunityAdminPanel from "@/components/community/CommunityAdminPanel";
 import CommunityMembersList from "@/components/community/CommunityMembersList";
 import CommunityJoinRequests from "@/components/community/CommunityJoinRequests";
 import CommunitySettings from "@/components/community/CommunitySettings";
 import EnhancedPostChirp from "@/components/forms/EnhancedPostChirp";
 
-import { fetchCommunityDetails } from "@/lib/actions/community.actions";
+import { fetchCommunityDetails , joinCommunity } from "@/lib/actions/community.actions";
 import { fetchUser } from "@/lib/actions/user.actions";
-import { joinCommunity, leaveCommunity } from "@/lib/actions/community.actions";
 
 // Update params type to Promise and await it
 async function Page({ params }: { params: Promise<{ id: string }> }) {
@@ -34,7 +31,7 @@ async function Page({ params }: { params: Promise<{ id: string }> }) {
       return (
         <div className="flex flex-col items-center justify-center py-20">
           <h1 className="text-heading2-bold text-light-1">Community not found</h1>
-          <p className="text-body-regular text-gray-1 mt-2">This community doesn't exist or has been deleted.</p>
+          <p className="text-body-regular mt-2 text-gray-1">This community doesn{`'`}t exist or has been deleted.</p>
         </div>
       );
     }
@@ -43,7 +40,7 @@ async function Page({ params }: { params: Promise<{ id: string }> }) {
     if (communityDetails.isPrivate && !communityDetails.isMember && !communityDetails.isAdmin) {
       return (
         <div className="flex flex-col items-center justify-center py-20">
-          <div className="flex items-center gap-4 mb-6">
+          <div className="mb-6 flex items-center gap-4">
             <Image
               src={communityDetails.image}
               alt={communityDetails.name}
@@ -53,17 +50,17 @@ async function Page({ params }: { params: Promise<{ id: string }> }) {
             />
             <div>
               <h1 className="text-heading2-bold text-light-1">{communityDetails.name}</h1>
-              <p className="text-body-regular text-gray-1 flex items-center gap-2">
+              <p className="text-body-regular flex items-center gap-2 text-gray-1">
                 <Image src='/assets/lock.svg' alt='private' width={16} height={16} />
                 Private Community
               </p>
             </div>
           </div>
-          <p className="text-body-regular text-gray-1 text-center mb-6">
+          <p className="text-body-regular mb-6 text-center text-gray-1">
             This is a private community. You need to be a member to view its content.
           </p>
           <Button 
-            className="bg-primary-500 hover:bg-primary-600"
+            className="hover:bg-primary-600 bg-primary-500"
             onClick={async () => {
               'use server';
               await joinCommunity({ 
@@ -206,7 +203,7 @@ async function Page({ params }: { params: Promise<{ id: string }> }) {
     return (
       <div className="flex flex-col items-center justify-center py-20">
         <h1 className="text-heading2-bold text-light-1">Error loading community</h1>
-        <p className="text-body-regular text-gray-1 mt-2">Please try again later.</p>
+        <p className="text-body-regular mt-2 text-gray-1">Please try again later.</p>
       </div>
     );
   }

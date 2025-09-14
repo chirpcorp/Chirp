@@ -75,7 +75,7 @@ async function Page() {
                 ))}
               </>
             ) : (
-              <p className='!text-base-regular text-light-3 text-center py-8'>No activity yet</p>
+              <p className='py-8 text-center !text-base-regular text-light-3'>No activity yet</p>
             )}
           </section>
         </TabsContent>
