@@ -16,6 +16,15 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  // Add error boundary for debugging
+  if (!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY) {
+    console.error("NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY is not set");
+  }
+  
+  if (!process.env.CLERK_SECRET_KEY) {
+    console.error("CLERK_SECRET_KEY is not set");
+  }
+
   return (
     <ClerkProvider>
       <html lang='en'>

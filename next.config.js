@@ -13,37 +13,25 @@ const nextConfig = {
     // Add your specific env vars here
   },
   
-  // For authentication and database libraries
+  // For authentication and database libraries - Turbopack compatible
   experimental: {
     serverComponentsExternalPackages: [
       '@prisma/client',
       'bcryptjs',
       'jsonwebtoken',
+      'mongoose',
       // Add any other packages causing Server Component issues
     ],
   },
   
-  // Webpack config for common auth/database libraries
-  webpack: (config, { buildId, dev, isServer, defaultLoaders, webpack }) => {
-    // Fix for common auth library issues
-    config.externals.push({
-      'utf-8-validate': 'commonjs utf-8-validate',
-      'bufferutil': 'commonjs bufferutil',
-      'supports-color': 'commonjs supports-color',
-    });
-    
-    // Handle node modules in client-side bundles
-    if (!isServer) {
-      config.resolve.fallback = {
-        ...config.resolve.fallback,
-        fs: false,
-        net: false,
-        tls: false,
-        crypto: false,
-      };
-    }
-    
-    return config;
+  // Turbopack config for common auth/database libraries
+  // This replaces the webpack configuration for Turbopack compatibility
+  turbopack: {
+    resolve: {
+      alias: {
+        // Add any aliases you need
+      },
+    },
   },
   
   // Image optimization settings
@@ -55,11 +43,29 @@ const nextConfig = {
       'avatars.githubusercontent.com',
       'lh3.googleusercontent.com',
       'platform-lookaside.fbsbx.com',
+      'utfs.io', // UploadThing file storage
+      'img.clerk.com', // Clerk user images
+      'images.clerk.dev', // Clerk user images
     ],
     remotePatterns: [
       {
         protocol: 'https',
         hostname: '**.vercel.app',
+      },
+      {
+        protocol: 'https',
+        hostname: 'utfs.io', // UploadThing file storage
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'img.clerk.com', // Clerk user images
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'images.clerk.dev', // Clerk user images
+        pathname: '/**',
       },
     ],
   },
