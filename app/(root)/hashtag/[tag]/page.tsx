@@ -1,14 +1,13 @@
 import { currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
-
 import { fetchUser } from "@/lib/actions/user.actions";
 import { fetchChirpsByHashtag } from "@/lib/actions/chirp.actions";
 import ChirpCard from "@/components/cards/ChirpCard";
 
 interface Props {
-  params: {
+  params: Promise<{
     tag: string;
-  };
+  }>;
 }
 
 async function Page({ params }: Props) {
@@ -18,8 +17,9 @@ async function Page({ params }: Props) {
   const userInfo = await fetchUser(user.id);
   if (!userInfo?.onboarded) redirect("/onboarding");
 
-  const { tag } = params;
+  const { tag } = await params;
   const hashtag = decodeURIComponent(tag);
+
   const result = await fetchChirpsByHashtag(hashtag, user.id);
 
   return (
