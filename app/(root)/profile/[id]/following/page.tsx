@@ -2,16 +2,14 @@ import { currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-
 import { fetchUser, fetchUserFollowing } from "@/lib/actions/user.actions";
 import UserCard from "@/components/cards/UserCard";
 
-async function FollowingPage({ params }: { params: { id: string } }) {
+async function FollowingPage({ params }: { params: Promise<{ id: string }> }) {
   const user = await currentUser();
   if (!user) return null;
 
-  const { id } = params;
-
+  const { id } = await params;
   const userInfo = await fetchUser(id);
   if (!userInfo?.onboarded) redirect("/onboarding");
 
