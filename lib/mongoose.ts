@@ -6,7 +6,10 @@ export const connectToDB = async () => {
   // Set strict query mode for Mongoose to prevent unknown field queries.
   mongoose.set("strictQuery", true);
 
-  if (!process.env.MONGODB_URL) return console.log("Missing MongoDB URL");
+  if (!process.env.MONGODB_URL) {
+    console.log("Missing MongoDB URL");
+    return;
+  }
 
   // If the connection is already established, return without creating a new connection.
   if (isConnected) {
@@ -15,11 +18,37 @@ export const connectToDB = async () => {
   }
 
   try {
-    await mongoose.connect(process.env.MONGODB_URL);
+    await mongoose.connect(process.env.MONGODB_URL, {
+      serverSelectionTimeoutMS: 10000, // 10 seconds
+      socketTimeoutMS: 20000, // 20 seconds
+      connectTimeoutMS: 10000, // 10 seconds
+      maxIdleTimeMS: 30000, // 30 seconds
+      retryWrites: true,
+    });
 
     isConnected = true; // Set the connection status to true
-    console.log("MongoDB connected");
+    console.log("MongoDB connected successfully");
   } catch (error) {
-    console.log(error);
+    console.error("MongoDB connection error:", error);
+    isConnected = false; // Reset connection status on error
+    throw new Error("Failed to connect to MongoDB");
+  }
+};
+
+// Test function to verify connection
+export const testConnection = async () => {
+  try {
+    await connectToDB();
+    const db = mongoose.connection;
+    if (db.readyState === 1) {
+      console.log("MongoDB connection test successful");
+      return true;
+    } else {
+      console.log("MongoDB connection test failed");
+      return false;
+    }
+  } catch (error) {
+    console.error("MongoDB connection test error:", error);
+    return false;
   }
 };

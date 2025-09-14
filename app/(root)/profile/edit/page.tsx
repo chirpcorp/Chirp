@@ -1,4 +1,4 @@
-import { currentUser } from "@clerk/nextjs";
+import { currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 
 import { fetchUser } from "@/lib/actions/user.actions";
@@ -15,11 +15,14 @@ async function Page() {
 
   const userData = {
     id: user.id,
-    objectId: userInfo?._id,
     username: userInfo ? userInfo?.username : user.username,
     name: userInfo ? userInfo?.name : user.firstName ?? "",
     bio: userInfo ? userInfo?.bio : "",
     image: userInfo ? userInfo?.image : user.imageUrl,
+    email: userInfo?.email || "",
+    website: userInfo?.website || "",
+    location: userInfo?.location || "",
+    dateOfBirth: userInfo?.dateOfBirth ? userInfo.dateOfBirth.toISOString().split('T')[0] : "",
   };
 
   return (

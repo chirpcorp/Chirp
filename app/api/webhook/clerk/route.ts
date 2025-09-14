@@ -17,6 +17,7 @@ import {
   removeUserFromCommunity,
   updateCommunityInfo,
 } from "@/lib/actions/community.actions";
+import { fetchUser } from "@/lib/actions/user.actions";
 
 // Resource: https://clerk.com/docs/integration/webhooks#supported-events
 // Above document lists the supported events
@@ -36,7 +37,7 @@ type Event = {
 
 export const POST = async (request: Request) => {
   const payload = await request.json();
-  const header = headers();
+  const header = await headers();
 
   const heads = {
     "svix-id": header.get("svix-id"),
@@ -44,9 +45,26 @@ export const POST = async (request: Request) => {
     "svix-signature": header.get("svix-signature"),
   };
 
+  // Validate that all required headers are present
+  if (!heads["svix-id"] || !heads["svix-timestamp"] || !heads["svix-signature"]) {
+    return NextResponse.json(
+      { message: "Missing required webhook headers" },
+      { status: 400 }
+    );
+  }
+
+  // Validate webhook secret is configured
+  if (!process.env.NEXT_CLERK_WEBHOOK_SECRET) {
+    console.error("NEXT_CLERK_WEBHOOK_SECRET is not configured");
+    return NextResponse.json(
+      { message: "Webhook secret not configured" },
+      { status: 500 }
+    );
+  }
+
   // Activitate Webhook in the Clerk Dashboard.
   // After adding the endpoint, you'll see the secret on the right side.
-  const wh = new Webhook(process.env.NEXT_CLERK_WEBHOOK_SECRET || "");
+  const wh = new Webhook(process.env.NEXT_CLERK_WEBHOOK_SECRET);
 
   let evnt: Event | null = null;
 
@@ -56,10 +74,15 @@ export const POST = async (request: Request) => {
       heads as IncomingHttpHeaders & WebhookRequiredHeaders
     ) as Event;
   } catch (err) {
-    return NextResponse.json({ message: err }, { status: 400 });
+    console.error("Webhook verification failed:", err);
+    return NextResponse.json({ message: "Invalid webhook signature" }, { status: 400 });
   }
 
-  const eventType: EventType = evnt?.type!;
+  if (!evnt) {
+    return NextResponse.json({ message: "Invalid event" }, { status: 400 });
+  }
+
+  const eventType: EventType = evnt.type;
 
   // Listen organization creation event
   if (eventType === "organization.created") {
@@ -69,20 +92,38 @@ export const POST = async (request: Request) => {
       evnt?.data ?? {};
 
     try {
-      // @ts-ignore
-      await createCommunity(
-        // @ts-ignore
-        id,
-        name,
-        slug,
-        logo_url || image_url,
-        "org bio",
-        created_by
-      );
+      // Validate required fields
+      if (!name || !slug || !created_by) {
+        return NextResponse.json(
+          { message: "Missing required organization data" },
+          { status: 400 }
+        );
+      }
 
-      return NextResponse.json({ message: "User created" }, { status: 201 });
+      // Find the user to get their MongoDB ObjectId
+      const user = await fetchUser(created_by as string);
+      if (!user) {
+        console.error(`User not found for Clerk ID: ${created_by}`);
+        return NextResponse.json(
+          { message: "User not found" },
+          { status: 404 }
+        );
+      }
+
+      // Use the new createCommunity interface
+      await createCommunity({
+        name: name as string,
+        username: slug as string,
+        description: "Organization created via Clerk",
+        image: (logo_url || image_url || "/assets/community.svg") as string,
+        creatorId: user._id.toString(),
+        isPrivate: false,
+        path: "/communities",
+      });
+
+      return NextResponse.json({ message: "Community created" }, { status: 201 });
     } catch (err) {
-      console.log(err);
+      console.error("Failed to create community:", err);
       return NextResponse.json(
         { message: "Internal Server Error" },
         { status: 500 }
@@ -120,11 +161,13 @@ export const POST = async (request: Request) => {
       const { organization, public_user_data } = evnt?.data;
       console.log("created", evnt?.data);
 
-      // @ts-ignore
-      await addMemberToCommunity(organization.id, public_user_data.user_id);
+      await addMemberToCommunity(
+        (organization as any)?.id as string,
+        (public_user_data as any)?.user_id as string
+      );
 
       return NextResponse.json(
-        { message: "Invitation accepted" },
+        { message: "Member added to community" },
         { status: 201 }
       );
     } catch (err) {
@@ -145,8 +188,10 @@ export const POST = async (request: Request) => {
       const { organization, public_user_data } = evnt?.data;
       console.log("removed", evnt?.data);
 
-      // @ts-ignore
-      await removeUserFromCommunity(public_user_data.user_id, organization.id);
+      await removeUserFromCommunity(
+        (public_user_data as any)?.user_id as string,
+        (organization as any)?.id as string
+      );
 
       return NextResponse.json({ message: "Member removed" }, { status: 201 });
     } catch (err) {
@@ -167,10 +212,16 @@ export const POST = async (request: Request) => {
       const { id, logo_url, name, slug } = evnt?.data;
       console.log("updated", evnt?.data);
 
-      // @ts-ignore
-      await updateCommunityInfo(id, name, slug, logo_url);
+      await updateCommunityInfo({
+        communityId: id as string,
+        name: name as string,
+        username: slug as string,
+        image: logo_url as string,
+        adminId: "system", // System update, no specific admin
+        path: "/communities",
+      });
 
-      return NextResponse.json({ message: "Member removed" }, { status: 201 });
+      return NextResponse.json({ message: "Community updated" }, { status: 201 });
     } catch (err) {
       console.log(err);
 
@@ -189,8 +240,11 @@ export const POST = async (request: Request) => {
       const { id } = evnt?.data;
       console.log("deleted", evnt?.data);
 
-      // @ts-ignore
-      await deleteCommunity(id);
+      await deleteCommunity({
+        communityId: id as string,
+        creatorId: "system", // System deletion
+        path: "/communities",
+      });
 
       return NextResponse.json(
         { message: "Organization deleted" },
@@ -205,4 +259,11 @@ export const POST = async (request: Request) => {
       );
     }
   }
+
+  // Handle unrecognized event types
+  console.log(`Unhandled event type: ${eventType}`);
+  return NextResponse.json(
+    { message: `Event type ${eventType} not implemented` },
+    { status: 200 } // Return 200 to acknowledge receipt
+  );
 };

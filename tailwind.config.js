@@ -173,8 +173,8 @@ module.exports = {
     },
     extend: {
       colors: {
-        "primary-500": "#877EFF",
-        "secondary-500": "#FFB620",
+        "primary-500": "#3393d4",
+        "secondary-500": "#09b8a6",
         blue: "#0095F6",
         "logout-btn": "#FF5A5A",
         "navbar-menu": "rgba(16, 16, 18, 0.6)",
@@ -195,6 +195,10 @@ module.exports = {
       },
       screens: {
         xs: "400px",
+        // Add tablet breakpoint
+        tablet: "768px",
+        laptop: "1024px",
+        desktop: "1280px",
       },
       keyframes: {
         "accordion-down": {

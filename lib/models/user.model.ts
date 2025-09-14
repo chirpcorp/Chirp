@@ -16,10 +16,66 @@ const userSchema = new mongoose.Schema({
   },
   image: String,
   bio: String,
-  threads: [
+  email: String,
+  website: String,
+  location: String,
+  dateOfBirth: Date,
+  joinedDate: {
+    type: Date,
+    default: Date.now,
+  },
+  followers: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+  }],
+  following: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+  }],
+  // Follow request system for private accounts
+  followRequests: [{
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
+    requestedAt: {
+      type: Date,
+      default: Date.now,
+    },
+  }],
+  sentFollowRequests: [{
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
+    requestedAt: {
+      type: Date,
+      default: Date.now,
+    },
+  }],
+  blockedUsers: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+  }],
+  reportedUsers: [{
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
+    reason: String,
+    date: {
+      type: Date,
+      default: Date.now,
+    },
+  }],
+  isPrivate: {
+    type: Boolean,
+    default: false,
+  },
+  chirps: [
     {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Thread",
+      ref: "Chirp",
     },
   ],
   onboarded: {

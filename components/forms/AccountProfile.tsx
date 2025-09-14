@@ -28,11 +28,14 @@ import { updateUser } from "@/lib/actions/user.actions";
 interface Props {
   user: {
     id: string;
-    objectId: string;
     username: string;
     name: string;
     bio: string;
     image: string;
+    email?: string;
+    website?: string;
+    location?: string;
+    dateOfBirth?: string;
   };
   btnTitle: string;
 }
@@ -51,6 +54,10 @@ const AccountProfile = ({ user, btnTitle }: Props) => {
       name: user?.name ? user.name : "",
       username: user?.username ? user.username : "",
       bio: user?.bio ? user.bio : "",
+      email: user?.email ? user.email : "",
+      website: user?.website ? user.website : "",
+      location: user?.location ? user.location : "",
+      dateOfBirth: user?.dateOfBirth ? new Date(user.dateOfBirth).toISOString().split('T')[0] : "",
     },
   });
 
@@ -61,8 +68,8 @@ const AccountProfile = ({ user, btnTitle }: Props) => {
     if (hasImageChanged) {
       const imgRes = await startUpload(files);
 
-      if (imgRes && imgRes[0].fileUrl) {
-        values.profile_photo = imgRes[0].fileUrl;
+      if (imgRes && imgRes[0].url) {
+        values.profile_photo = imgRes[0].url;
       }
     }
 
@@ -73,6 +80,10 @@ const AccountProfile = ({ user, btnTitle }: Props) => {
       userId: user.id,
       bio: values.bio,
       image: values.profile_photo,
+      email: values.email,
+      website: values.website,
+      location: values.location,
+      dateOfBirth: values.dateOfBirth,
     });
 
     if (pathname === "/profile/edit") {
@@ -200,6 +211,89 @@ const AccountProfile = ({ user, btnTitle }: Props) => {
               <FormControl>
                 <Textarea
                   rows={10}
+                  className='account-form_input no-focus'
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name='email'
+          render={({ field }) => (
+            <FormItem className='flex w-full flex-col gap-3'>
+              <FormLabel className='text-base-semibold text-light-2'>
+                Email (Optional)
+              </FormLabel>
+              <FormControl>
+                <Input
+                  type='email'
+                  className='account-form_input no-focus'
+                  placeholder='your@email.com'
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name='website'
+          render={({ field }) => (
+            <FormItem className='flex w-full flex-col gap-3'>
+              <FormLabel className='text-base-semibold text-light-2'>
+                Website (Optional)
+              </FormLabel>
+              <FormControl>
+                <Input
+                  type='url'
+                  className='account-form_input no-focus'
+                  placeholder='https://yourwebsite.com'
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name='location'
+          render={({ field }) => (
+            <FormItem className='flex w-full flex-col gap-3'>
+              <FormLabel className='text-base-semibold text-light-2'>
+                Location (Optional)
+              </FormLabel>
+              <FormControl>
+                <Input
+                  type='text'
+                  className='account-form_input no-focus'
+                  placeholder='City, Country'
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name='dateOfBirth'
+          render={({ field }) => (
+            <FormItem className='flex w-full flex-col gap-3'>
+              <FormLabel className='text-base-semibold text-light-2'>
+                Date of Birth (Optional)
+              </FormLabel>
+              <FormControl>
+                <Input
+                  type='date'
                   className='account-form_input no-focus'
                   {...field}
                 />

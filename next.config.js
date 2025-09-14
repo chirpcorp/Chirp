@@ -1,9 +1,13 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   experimental: {
-    serverActions: true,
-    serverComponentsExternalPackages: ["mongoose"],
+    serverActions: {
+      bodySizeLimit: '10mb',
+    },
   },
+  serverExternalPackages: ["mongoose"],
+  // Suppress hydration warnings for browser extensions
+  reactStrictMode: true,
   eslint: {
     // Warning: This allows production builds to successfully complete even if
     // your project has ESLint errors.
@@ -21,11 +25,31 @@ const nextConfig = {
       },
       {
         protocol: "https",
+        hostname: "clerk.com",
+      },
+      {
+        protocol: "https",
         hostname: "uploadthing.com",
       },
       {
         protocol: "https",
+        hostname: "utfs.io",
+      },
+      {
+        protocol: "https",
         hostname: "placehold.co",
+      },
+      {
+        protocol: "https",
+        hostname: "github.com",
+      },
+      {
+        protocol: "https",
+        hostname: "avatars.githubusercontent.com",
+      },
+      {
+        protocol: "https",
+        hostname: "lh3.googleusercontent.com",
       },
     ],
   },

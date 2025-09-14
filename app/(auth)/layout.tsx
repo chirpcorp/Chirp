@@ -2,9 +2,11 @@ import React from "react";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
-import { dark } from "@clerk/themes";
+import Script from "next/script";
 
 import "../globals.css";
+import HydrationFix from "@/components/shared/HydrationFix";
+import ThemeInitializer from "@/components/shared/ThemeInitializer";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -19,13 +21,19 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <ClerkProvider
-      appearance={{
-        baseTheme: dark,
-      }}
-    >
+    <ClerkProvider>
       <html lang='en'>
-        <body className={`${inter.className} bg-dark-1`}>{children}</body>
+        <head>
+          <Script
+            src="/theme-init.js"
+            strategy="beforeInteractive"
+          />
+        </head>
+        <body className={`${inter.className} bg-dark-1`} suppressHydrationWarning={true} style={{visibility: 'hidden'}}>
+          <ThemeInitializer />
+          <HydrationFix />
+          {children}
+        </body>
       </html>
     </ClerkProvider>
   );

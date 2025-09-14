@@ -1,5 +1,7 @@
-import { currentUser } from "@clerk/nextjs";
+import { currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 import Searchbar from "@/components/shared/Searchbar";
 import Pagination from "@/components/shared/Pagination";
@@ -11,7 +13,7 @@ import { fetchCommunities } from "@/lib/actions/community.actions";
 async function Page({
   searchParams,
 }: {
-  searchParams: { [key: string]: string | undefined };
+  searchParams: Promise<{ [key: string]: string | undefined }>;
 }) {
   const user = await currentUser();
   if (!user) return null;
@@ -19,15 +21,24 @@ async function Page({
   const userInfo = await fetchUser(user.id);
   if (!userInfo?.onboarded) redirect("/onboarding");
 
+  const resolvedSearchParams = await searchParams;
   const result = await fetchCommunities({
-    searchString: searchParams.q,
-    pageNumber: searchParams?.page ? +searchParams.page : 1,
+    searchString: resolvedSearchParams.q,
+    pageNumber: resolvedSearchParams?.page ? +resolvedSearchParams.page : 1,
     pageSize: 25,
+    currentUserId: user.id, // Pass current user ID for privacy-aware filtering
   });
 
   return (
     <>
-      <h1 className='head-text'>Communities</h1>
+      <div className='flex items-center justify-between'>
+        <h1 className='head-text'>Communities</h1>
+        <Link href='/communities/create'>
+          <Button className='bg-primary-500 hover:bg-primary-600'>
+            Create Community
+          </Button>
+        </Link>
+      </div>
 
       <div className='mt-5'>
         <Searchbar routeType='communities' />
@@ -45,8 +56,15 @@ async function Page({
                 name={community.name}
                 username={community.username}
                 imgUrl={community.image}
-                bio={community.bio}
-                members={community.members}
+                description={community.description}
+                isPrivate={community.isPrivate}
+                memberCount={community.memberCount}
+                postCount={community.postCount}
+                tags={community.tags}
+                isMember={community.isMember}
+                userRole={community.userRole}
+                showMembers={community.showMembers}
+                creator={community.creator || undefined}
               />
             ))}
           </>
@@ -55,7 +73,7 @@ async function Page({
 
       <Pagination
         path='communities'
-        pageNumber={searchParams?.page ? +searchParams.page : 1}
+        pageNumber={resolvedSearchParams?.page ? +resolvedSearchParams.page : 1}
         isNext={result.isNext}
       />
     </>

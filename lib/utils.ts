@@ -14,21 +14,26 @@ export function isBase64Image(imageData: string) {
 
 // created by chatgpt
 export function formatDateString(dateString: string) {
-  const options: Intl.DateTimeFormatOptions = {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  };
-
   const date = new Date(dateString);
-  const formattedDate = date.toLocaleDateString(undefined, options);
-
-  const time = date.toLocaleTimeString([], {
-    hour: "numeric",
-    minute: "2-digit",
-  });
-
-  return `${time} - ${formattedDate}`;
+  
+  // Create a deterministic format that will be the same on server and client
+  const year = date.getUTCFullYear();
+  const month = date.getUTCMonth() + 1; // Months are 0-indexed
+  const day = date.getUTCDate();
+  const hours = date.getUTCHours();
+  const minutes = date.getUTCMinutes();
+  
+  // Pad single digits with leading zero
+  const paddedMonth = month.toString().padStart(2, '0');
+  const paddedDay = day.toString().padStart(2, '0');
+  const paddedHours = hours.toString().padStart(2, '0');
+  const paddedMinutes = minutes.toString().padStart(2, '0');
+  
+  // Format as "HH:MM - DD MMM YYYY" (using UTC to ensure consistency)
+  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const monthName = monthNames[date.getUTCMonth()];
+  
+  return `${paddedHours}:${paddedMinutes} - ${paddedDay} ${monthName} ${year}`;
 }
 
 // created by chatgpt
@@ -40,4 +45,126 @@ export function formatThreadCount(count: number): string {
     const threadWord = count === 1 ? "Thread" : "Threads";
     return `${threadCount} ${threadWord}`;
   }
+}
+
+// Hashtag and mention parsing utilities
+export function extractHashtags(text: string): string[] {
+  const hashtagRegex = /#[a-zA-Z0-9_]+/g;
+  const hashtags = text.match(hashtagRegex) || [];
+  return hashtags.map(tag => tag.slice(1).toLowerCase()); // Remove # and convert to lowercase
+}
+
+export function extractMentions(text: string): string[] {
+  const mentionRegex = /@[a-zA-Z0-9_]+/g;
+  const mentions = text.match(mentionRegex) || [];
+  return mentions.map(mention => mention.slice(1)); // Remove @
+}
+
+// Extract community references from text (c/community)
+export function extractCommunityReferences(text: string): string[] {
+  const communityRegex = /c\/[a-zA-Z0-9_]+/g;
+  const communities = text.match(communityRegex) || [];
+  return communities.map(community => community.slice(2)); // Remove c/
+}
+
+// Format text with hashtags, mentions, and community references for display
+export function formatChirpText(text: string): string {
+  // Replace hashtags with styled spans
+  let formattedText = text.replace(
+    /#([a-zA-Z0-9_]+)/g,
+    '<span class="text-blue-500 font-medium">#$1</span>'
+  );
+  
+  // Replace mentions with styled spans
+  formattedText = formattedText.replace(
+    /@([a-zA-Z0-9_]+)/g,
+    '<span class="text-green-500 font-medium">@$1</span>'
+  );
+  
+  // Replace community references with styled spans
+  formattedText = formattedText.replace(
+    /c\/([a-zA-Z0-9_]+)/g,
+    '<span class="text-purple-500 font-medium">c/$1</span>'
+  );
+  
+  return formattedText;
+}
+
+// Check if text contains hashtags, mentions, or community references
+export function hasHashtagsOrMentions(text: string): boolean {
+  const hashtagRegex = /#[a-zA-Z0-9_]+/;
+  const mentionRegex = /@[a-zA-Z0-9_]+/;
+  const communityRegex = /c\/[a-zA-Z0-9_]+/;
+  return hashtagRegex.test(text) || mentionRegex.test(text) || communityRegex.test(text);
+}
+
+// Function to extract URLs from text
+export function extractUrls(text: string): string[] {
+  const urlRegex = /(https?:\/\/[^\s]+)|(www\.[^\s]+\.[a-z]{2,})/gi;
+  const urls = text.match(urlRegex) || [];
+  return urls.map(url => {
+    // Add https:// if it starts with www.
+    if (url.startsWith('www.')) {
+      return `https://${url}`;
+    }
+    return url;
+  });
+}
+
+// Function to extract emails from text
+export function extractEmails(text: string): string[] {
+  const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
+  return text.match(emailRegex) || [];
+}
+
+// Function to parse text and identify different types of content
+export function parseTextContent(text: string): {
+  type: 'text' | 'hashtag' | 'mention' | 'community' | 'url' | 'email';
+  content: string;
+  href?: string;
+}[] {
+  if (!text || typeof text !== 'string') {
+    return [{ type: 'text', content: '' }];
+  }
+
+  const parts: { type: 'text' | 'hashtag' | 'mention' | 'community' | 'url' | 'email'; content: string; href?: string }[] = [];
+  let lastIndex = 0;
+
+  // Regex to find all special patterns
+  const regex = /(#\w+)|(@\w+)|(c\/\w+)|(https?:\/\/[^\s]+)|(www\.[^\s]+\.[a-z]{2,})|([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/gi;
+  let match;
+
+  while ((match = regex.exec(text)) !== null) {
+    const [fullMatch, hashtag, mention, community, httpUrl, wwwUrl, email] = match;
+    const index = match.index;
+
+    // Add the text part before the match
+    if (index > lastIndex) {
+      parts.push({ type: 'text', content: text.substring(lastIndex, index) });
+    }
+
+    // Determine the type of match and add it
+    if (hashtag) {
+      parts.push({ type: 'hashtag', content: fullMatch, href: `/hashtag/${fullMatch.slice(1)}` });
+    } else if (mention) {
+      parts.push({ type: 'mention', content: fullMatch, href: `/search?q=${fullMatch.slice(1)}` });
+    } else if (community) {
+      parts.push({ type: 'community', content: fullMatch, href: `/communities/${fullMatch.slice(2)}` });
+    } else if (httpUrl) {
+      parts.push({ type: 'url', content: fullMatch, href: fullMatch });
+    } else if (wwwUrl) {
+      parts.push({ type: 'url', content: fullMatch, href: `https://${fullMatch}` });
+    } else if (email) {
+      parts.push({ type: 'email', content: fullMatch, href: `mailto:${fullMatch}` });
+    }
+
+    lastIndex = regex.lastIndex;
+  }
+
+  // Add the remaining text part
+  if (lastIndex < text.length) {
+    parts.push({ type: 'text', content: text.substring(lastIndex) });
+  }
+
+  return parts;
 }

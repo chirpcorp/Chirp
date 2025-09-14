@@ -1,5 +1,4 @@
 import { OrganizationSwitcher, SignedIn, SignOutButton } from "@clerk/nextjs";
-import { dark } from "@clerk/themes";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -8,7 +7,7 @@ function Topbar() {
     <nav className='topbar'>
       <Link href='/' className='flex items-center gap-4'>
         <Image src='/logo.svg' alt='logo' width={28} height={28} />
-        <p className='text-heading3-bold text-light-1 max-xs:hidden'>Threads</p>
+        <p className='text-heading3-bold text-light-1 max-xs:hidden'>Chirp</p>
       </Link>
 
       <div className='flex items-center gap-1'>
@@ -27,14 +26,21 @@ function Topbar() {
           </SignedIn>
         </div>
 
-        <OrganizationSwitcher
-          appearance={{
-            baseTheme: dark,
-            elements: {
-              organizationSwitcherTrigger: "py-2 px-4",
-            },
-          }}
-        />
+        {/* Conditionally render OrganizationSwitcher only if organizations are enabled */}
+        {process.env.NODE_ENV === 'production' ? (
+          <OrganizationSwitcher
+            appearance={{
+              elements: {
+                organizationSwitcherTrigger: "py-2 px-4",
+              },
+            }}
+          />
+        ) : (
+          <div className='py-2 px-4 text-light-2 text-sm'>
+            {/* Placeholder for the version name in development */}
+            <strong>Beta Version</strong>
+          </div>
+        )}
       </div>
     </nav>
   );
