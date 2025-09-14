@@ -7,8 +7,8 @@ export const connectToDB = async () => {
   mongoose.set("strictQuery", true);
 
   if (!process.env.MONGODB_URL) {
-    console.log("Missing MongoDB URL");
-    return;
+    console.error("Missing MONGODB_URL environment variable");
+    throw new Error("MONGODB_URL environment variable is required");
   }
 
   // If the connection is already established, return without creating a new connection.
@@ -31,7 +31,7 @@ export const connectToDB = async () => {
   } catch (error) {
     console.error("MongoDB connection error:", error);
     isConnected = false; // Reset connection status on error
-    throw new Error("Failed to connect to MongoDB");
+    throw new Error(`Failed to connect to MongoDB: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 };
 

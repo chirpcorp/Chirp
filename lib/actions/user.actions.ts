@@ -24,7 +24,8 @@ export async function fetchUser(userId: string) {
     });
 
     if (!user) {
-      throw new Error("User not found");
+      console.warn(`User not found for ID: ${userId}`);
+      return null; // Return null instead of throwing an error
     }
 
     // Serialize to plain object to avoid circular references
@@ -68,7 +69,8 @@ export async function fetchUser(userId: string) {
     };
   } catch (error: any) {
     console.error("Error fetching user:", error);
-    throw new Error(`Failed to fetch user: ${error.message}`);
+    // Return null instead of throwing an error to prevent server component crashes
+    return null;
   }
 }
 
