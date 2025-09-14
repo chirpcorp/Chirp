@@ -2,7 +2,6 @@ import { currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { fetchUser } from "@/lib/actions/user.actions";
 import { getUserMetrics, getPlatformMetrics } from "@/lib/algorithms/analytics";
-
 import SettingsLayout from "@/components/settings/SettingsLayout";
 
 async function SettingsPage() {
@@ -42,6 +41,7 @@ async function SettingsPage() {
             Manage your account preferences and privacy settings
           </p>
         </div>
+
         <SettingsLayout
           userInfo={{
             _id: userInfo._id?.toString() || '',
@@ -81,3 +81,5 @@ async function SettingsPage() {
     redirect("/onboarding");
   }
 }
+
+export default SettingsPage;
