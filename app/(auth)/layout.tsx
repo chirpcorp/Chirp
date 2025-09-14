@@ -6,7 +6,6 @@ import Script from "next/script";
 
 import "../globals.css";
 import HydrationFix from "@/components/shared/HydrationFix";
-import ThemeInitializer from "@/components/shared/ThemeInitializer";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -30,7 +29,6 @@ export default function RootLayout({
           />
         </head>
         <body className={`${inter.className} bg-dark-1`} suppressHydrationWarning={true} style={{visibility: 'hidden'}}>
-          <ThemeInitializer />
           <HydrationFix />
           {children}
         </body>
