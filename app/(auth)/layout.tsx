@@ -23,7 +23,7 @@ export default function RootLayout({
       <html lang='en'>
         <head>
           <Script
-            src="/theme-init.js"
+            src="/public/theme-init.js"
             strategy="beforeInteractive"
           />
         </head>
