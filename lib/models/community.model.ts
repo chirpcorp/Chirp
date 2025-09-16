@@ -250,6 +250,16 @@ communitySchema.methods.getMemberRole = function(userId: string) {
   return null;
 };
 
+// Add the missing hasPendingRequest method
+communitySchema.methods.hasPendingRequest = function(userId: string) {
+  // Add null safety check for joinRequests array
+  if (!this.joinRequests || !Array.isArray(this.joinRequests)) return false;
+  
+  return this.joinRequests.some((request: any) => 
+    request.user && request.user.toString() === userId.toString()
+  );
+};
+
 // Pre-save middleware to update stats
 communitySchema.pre('save', function(next) {
   this.updatedAt = new Date();

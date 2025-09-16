@@ -6,6 +6,8 @@ interface NotificationSettings {
   followers: boolean;
   mentions: boolean;
   followRequests: boolean;
+  weeklySummary: boolean;
+  productUpdates: boolean;
 }
 
 interface PushNotificationPayload {
@@ -49,6 +51,8 @@ class NotificationService {
     followers: true,
     mentions: true,
     followRequests: true,
+    weeklySummary: false,
+    productUpdates: false,
   };
 
   private serviceWorkerRegistration: ServiceWorkerRegistration | null = null;

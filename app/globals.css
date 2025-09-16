@@ -25,15 +25,15 @@
   }
 
   .bottombar {
-  @apply fixed bottom-0 z-50 w-full bg-dark-2 border-t border-t-dark-4 sm:hidden h-11;
+    @apply fixed bottom-0 z-10 w-full rounded-t-3xl bg-glassmorphism p-4 backdrop-blur-lg xs:px-7 md:hidden;
   }
 
   .bottombar_container {
-  @apply flex items-center justify-between w-full px-0 py-0 gap-0 h-full;
+    @apply flex items-center justify-between gap-3 xs:gap-5;
   }
 
   .bottombar_link {
-  @apply flex flex-col items-center justify-center gap-0 min-w-0 h-full flex-1;
+    @apply relative flex flex-col items-center gap-2 rounded-lg p-2 sm:flex-1 sm:px-2 sm:py-2.5;
   }
 
   .bottombar_link:hover {
@@ -152,7 +152,7 @@
   }
 
   .slick-dots li button:before {
-    @apply text-white opacity-50 text-xs;
+    @apply text-white opacity-50 text-[10px] xs:text-xs;
   }
 
   .slick-prev:before,
@@ -198,10 +198,14 @@
   }
 }
 
+.tab {
+  @apply flex min-h-[50px] flex-1 items-center gap-3 bg-dark-2 text-light-2 data-[state=active]:bg-[#0e0e12] data-[state=active]:text-light-2 !important;
+}
+
 /* Custom styles for Media Gallery */
 .media-gallery-container {
   position: relative;
-  border-radius: 0.75rem;
+  border-radius: 0.5rem;
   overflow: hidden;
   background-color: #0f172a;
 }

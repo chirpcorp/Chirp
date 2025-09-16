@@ -26,7 +26,13 @@ export default function RootLayout({
   }
 
   return (
-    <ClerkProvider>
+    <ClerkProvider
+      // Add Clerk configuration to reduce session refresh issues
+      publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
+      afterSignOutUrl="/"
+      signInUrl="/sign-in"
+      signUpUrl="/sign-up"
+    >
       <html lang='en'>
         <body className={`${inter.className}`} style={{backgroundColor: '#000', color: '#fff'}}>
           {children}

@@ -13,6 +13,21 @@ async function Page() {
   const userInfo = await fetchUser(user.id);
   if (!userInfo?.onboarded) redirect("/onboarding");
 
+  // Ensure dateOfBirth is properly formatted
+  let formattedDateOfBirth = "";
+  if (userInfo?.dateOfBirth) {
+    if (typeof userInfo.dateOfBirth === 'string') {
+      // If it's already a string, try to parse it as a date
+      const date = new Date(userInfo.dateOfBirth);
+      if (!isNaN(date.getTime())) {
+        formattedDateOfBirth = date.toISOString().split('T')[0];
+      }
+    } else if (userInfo.dateOfBirth instanceof Date) {
+      // If it's already a Date object
+      formattedDateOfBirth = userInfo.dateOfBirth.toISOString().split('T')[0];
+    }
+  }
+
   const userData = {
     id: user.id,
     username: userInfo ? userInfo?.username : user.username,
@@ -22,7 +37,7 @@ async function Page() {
     email: userInfo?.email || "",
     website: userInfo?.website || "",
     location: userInfo?.location || "",
-    dateOfBirth: userInfo?.dateOfBirth ? userInfo.dateOfBirth.toISOString().split('T')[0] : "",
+    dateOfBirth: formattedDateOfBirth,
   };
 
   return (

@@ -1,11 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 import AnalyticsDashboard from "@/components/analytics/AnalyticsDashboard";
 import MetricsCard from "@/components/analytics/MetricsCard";
 import EngagementChart from "@/components/analytics/EngagementChart";
+import ImageCropper from "@/components/shared/ImageCropper";
 
 // Import components directly with fallbacks
 
@@ -84,7 +86,10 @@ export default function SettingsLayout({
   userMetrics7Days, 
   platformMetrics 
 }: Props) {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState("general");
+  const [showCropper, setShowCropper] = useState(false);
+  const [tempImage, setTempImage] = useState<string | null>(null);
 
   // Null safety checks
   if (!userInfo || !userMetrics30Days || !userMetrics7Days || !platformMetrics) {
@@ -98,11 +103,39 @@ export default function SettingsLayout({
     );
   }
 
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const imageDataUrl = event.target?.result as string;
+        setTempImage(imageDataUrl);
+        setShowCropper(true);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleCropComplete = (croppedImage: string) => {
+    // In a real implementation, you would upload the cropped image here
+    // For now, we'll just close the cropper and refresh the page to show the change
+    setShowCropper(false);
+    setTempImage(null);
+    
+    // Refresh the page to show the new image
+    router.refresh();
+  };
+
+  const handleCropCancel = () => {
+    setShowCropper(false);
+    setTempImage(null);
+  };
+
   const renderTabContent = () => {
     switch (activeTab) {
       case "general":
         return (
-          <div className="space-y-8 p-8">
+          <div className="space-y-8 overflow-hidden p-4 md:p-8">
             {/* Profile Overview */}
             <div className="rounded-2xl border border-dark-4 bg-gradient-to-br from-dark-2 to-dark-3 p-8">
               <h3 className="mb-6 flex items-center gap-3 text-heading3-bold text-light-1">
@@ -114,7 +147,7 @@ export default function SettingsLayout({
               
               <div className="flex flex-col gap-8 md:flex-row">
                 {/* Profile Image Section */}
-                <div className="flex flex-col items-center">
+                <div className="flex flex-shrink-0 flex-col items-center">
                   <div className="group relative">
                     <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-primary-500 to-secondary-500 opacity-75 transition-opacity group-hover:opacity-100" />
                     <Image
@@ -125,54 +158,63 @@ export default function SettingsLayout({
                       className="relative rounded-full border-4 border-dark-1 object-cover"
                     />
                   </div>
-                  <button className="hover:bg-primary-600 text-sm mt-4 rounded-lg bg-primary-500 px-4 py-2 font-medium text-white transition-colors">
+                  <label className="hover:bg-primary-600 text-sm mt-4 cursor-pointer whitespace-nowrap rounded-lg bg-primary-500 px-4 py-2 font-medium text-white transition-colors">
                     Change Photo
-                  </button>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleImageChange}
+                    />
+                  </label>
                 </div>
 
                 {/* Profile Details */}
-                <div className="flex-1 space-y-6">
+                <div className="min-w-0 flex-1 space-y-6">
                   <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                    <div className="space-y-2">
+                    <div className="min-w-0 space-y-2">
                       <label className="text-small-semibold uppercase tracking-wide text-gray-1">Display Name</label>
                       <div className="rounded-xl border border-dark-3 bg-dark-4 p-4">
-                        <p className="text-body-semibold text-light-1">{userInfo.name || 'Unknown'}</p>
+                        <p className="truncate text-body-semibold text-light-1">{userInfo.name || 'Unknown'}</p>
                       </div>
                     </div>
-                    <div className="space-y-2">
+                    <div className="min-w-0 space-y-2">
                       <label className="text-small-semibold uppercase tracking-wide text-gray-1">Username</label>
                       <div className="rounded-xl border border-dark-3 bg-dark-4 p-4">
-                        <p className="text-body-medium text-light-1">@{userInfo.username || 'unknown'}</p>
+                        <p className="truncate text-body-medium text-light-1">@{userInfo.username || 'unknown'}</p>
                       </div>
                     </div>
-                    <div className="space-y-2">
+                    <div className="min-w-0 space-y-2">
                       <label className="text-small-semibold uppercase tracking-wide text-gray-1">Email</label>
                       <div className="rounded-xl border border-dark-3 bg-dark-4 p-4">
-                        <p className="text-body-medium text-light-1">{userInfo.email || "Not provided"}</p>
+                        <p className="truncate text-body-medium text-light-1">{userInfo.email || "Not provided"}</p>
                       </div>
                     </div>
-                    <div className="space-y-2">
+                    <div className="min-w-0 space-y-2">
                       <label className="text-small-semibold uppercase tracking-wide text-gray-1">Location</label>
                       <div className="rounded-xl border border-dark-3 bg-dark-4 p-4">
-                        <p className="text-body-medium text-light-1">{userInfo.location || "Not provided"}</p>
+                        <p className="truncate text-body-medium text-light-1">{userInfo.location || "Not provided"}</p>
                       </div>
                     </div>
                   </div>
                   
                   {/* Bio Section */}
-                  <div className="space-y-2">
+                  <div className="min-w-0 space-y-2">
                     <label className="text-small-semibold uppercase tracking-wide text-gray-1">Bio</label>
                     <div className="rounded-xl border border-dark-3 bg-dark-4 p-4">
-                      <p className="text-body-medium text-light-1">{userInfo.bio || "No bio provided"}</p>
+                      <p className="break-words text-body-medium text-light-1">{userInfo.bio || "No bio provided"}</p>
                     </div>
                   </div>
 
                   {/* Action Buttons */}
-                  <div className="flex gap-4 pt-4">
-                    <button className="hover:from-primary-600 hover:to-secondary-600 flex-1 transform rounded-xl bg-gradient-to-r from-primary-500 to-secondary-500 py-3 font-semibold text-white transition-all hover:scale-105">
+                  <div className="flex flex-wrap gap-4 pt-4">
+                    <button 
+                      onClick={() => router.push('/profile/edit')}
+                      className="hover:from-primary-600 hover:to-secondary-600 min-w-[120px] flex-1 transform rounded-xl bg-gradient-to-r from-primary-500 to-secondary-500 px-4 py-3 font-semibold text-white transition-all hover:scale-105"
+                    >
                       Edit Profile
                     </button>
-                    <button className="rounded-xl border border-dark-3 bg-dark-4 px-6 py-3 font-medium text-light-1 transition-colors hover:bg-dark-3">
+                    <button className="min-w-[120px] flex-1 rounded-xl border border-dark-3 bg-dark-4 px-4 py-3 font-medium text-light-1 transition-colors hover:bg-dark-3">
                       View Public Profile
                     </button>
                   </div>
@@ -294,7 +336,7 @@ export default function SettingsLayout({
   };
 
   return (
-    <div className="w-full">
+    <div className="w-full overflow-x-hidden">
       {/* Mobile Navigation - Horizontal scrolling tabs */}
       <div className="mb-6 lg:hidden">
         <div className="rounded-xl bg-dark-2 p-2">
@@ -326,7 +368,7 @@ export default function SettingsLayout({
       </div>
 
       {/* Desktop Layout */}
-      <div className="flex gap-8">
+      <div className="flex gap-8 overflow-x-hidden">
         {/* Desktop Navigation */}
         <div className="hidden w-72 flex-shrink-0 lg:block">
           <div className="rounded-2xl border border-dark-4 bg-dark-2 p-6 shadow-xl">
@@ -361,9 +403,9 @@ export default function SettingsLayout({
                         }`}
                       />
                     </div>
-                    <div className="text-left">
-                      <span className="block text-body-medium font-semibold">{tab.label}</span>
-                      <span className="text-xs opacity-70">
+                    <div className="min-w-0 text-left">
+                      <span className="block truncate text-body-medium font-semibold">{tab.label}</span>
+                      <span className="truncate text-xs opacity-70">
                         {tab.id === 'general' && 'Account info'}
                         {tab.id === 'privacy' && 'Security settings'}
                         {tab.id === 'notifications' && 'Alerts & sounds'}
@@ -382,11 +424,20 @@ export default function SettingsLayout({
 
         {/* Settings Content */}
         <div className="min-w-0 flex-1">
-          <div className="overflow-hidden rounded-2xl bg-dark-1">
+          <div className="overflow-x-hidden rounded-2xl bg-dark-1">
             {renderTabContent()}
           </div>
         </div>
       </div>
+
+      {/* Image Cropper Modal */}
+      {showCropper && tempImage && (
+        <ImageCropper
+          src={tempImage}
+          onCropComplete={handleCropComplete}
+          onCancel={handleCropCancel}
+        />
+      )}
     </div>
   );
 }

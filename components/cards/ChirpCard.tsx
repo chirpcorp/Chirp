@@ -68,6 +68,37 @@ function ChirpCard({
   isComment,
   isLikedByCurrentUser = false,
 }: Props) {
+  // Ensure all objects passed to client components are plain objects
+  // Convert any potential MongoDB objects to plain objects
+  const plainAuthor = {
+    name: author.name,
+    image: author.image,
+    id: author.id,
+    username: author.username || undefined,
+  };
+  
+  const plainCommunity = community ? {
+    id: community.id,
+    name: community.name,
+    image: community.image,
+    username: community.username || undefined,
+    isPrivate: community.isPrivate || undefined,
+  } : null;
+  
+  // Fix potential infinite recursion by ensuring comments are properly processed
+  const plainComments = Array.isArray(comments) ? comments.map(comment => ({
+    author: {
+      image: comment.author?.image || '',
+    }
+  })).filter(comment => comment.author.image) : [];
+  
+  const plainAttachments = Array.isArray(attachments) ? attachments.map(attachment => ({
+    type: attachment.type,
+    url: attachment.url,
+    filename: attachment.filename || undefined,
+    size: attachment.size || undefined,
+  })) : [];
+
   const pathname = usePathname();
   const [isLiked, setIsLiked] = useState(isLikedByCurrentUser);
   const [likeCount, setLikeCount] = useState(likes.length);
@@ -108,71 +139,71 @@ function ChirpCard({
   return (
     <article
       className={`flex w-full flex-col rounded-xl ${
-        isComment ? "px-0 xs:px-7" : "bg-dark-2 p-7"
+        isComment ? "px-0 xs:px-4" : "bg-dark-2 p-4 xs:p-5"
       }`}
     >
       <div className='flex items-start justify-between'>
         <div className='flex w-full flex-1 flex-row gap-4'>
           {/* Facebook-style community header for community posts */}
-          {community && !isComment ? (
+          {plainCommunity && !isComment ? (
             <div className='flex w-full flex-col'>
               {/* Community Header */}
               <div className='mb-3 flex items-center gap-3'>
-                <Link href={`/communities/${community.username || community.id}`} className='relative'>
-                  <div className='relative size-12'>
+                <Link href={`/communities/${plainCommunity.username || plainCommunity.id}`} className='relative'>
+                  <div className='relative size-10 xs:size-12'>
                     <Image
-                      src={community.image}
-                      alt={community.name}
+                      src={plainCommunity.image}
+                      alt={plainCommunity.name}
                       fill
                       className='cursor-pointer rounded-lg object-cover' // Rounded square for community
                       unoptimized={true}
                     />
-                    {community.isPrivate && (
+                    {plainCommunity.isPrivate && (
                       <div className='absolute -right-1 -top-1 rounded-full bg-gray-600 p-1'>
                         <Image src='/assets/lock.svg' alt='private' width={10} height={10} unoptimized={true} />
                       </div>
                     )}
                   </div>
                 </Link>
-                <div className='flex flex-col'>
-                  <Link href={`/communities/${community.username || community.id}`} className='w-fit'>
-                    <h3 className='cursor-pointer text-base-semibold text-light-1 hover:underline'>
-                      {community.name}
+                <div className='flex min-w-0 flex-col'>
+                  <Link href={`/communities/${plainCommunity.username || plainCommunity.id}`} className='w-fit'>
+                    <h3 className='cursor-pointer truncate text-base-semibold text-light-1 hover:underline'>
+                      {plainCommunity.name}
                     </h3>
                   </Link>
-                  <p className='text-xs text-gray-1'>
+                  <p className='truncate text-xs text-gray-1'>
                     {formatDateString(createdAt)}
-                    {community.isPrivate && ' • Private community'}
+                    {plainCommunity.isPrivate && ' • Private community'}
                   </p>
                 </div>
               </div>
               
               {/* User info within community post */}
-              <div className='ml-2 flex items-center gap-3'>
-                <Link href={`/profile/${author.id}`} className='relative size-8'>
+              <div className='ml-1 flex items-center gap-2 xs:ml-2 xs:gap-3'>
+                <Link href={`/profile/${plainAuthor.id}`} className='relative size-7 xs:size-8'>
                   <Image
-                    src={author.image}
-                    alt={author.name}
+                    src={plainAuthor.image}
+                    alt={plainAuthor.name}
                     fill
                     className='cursor-pointer rounded-full object-cover'
                     unoptimized={true}
                   />
                 </Link>
-                <div className='flex items-center gap-2'>
-                  <Link href={`/profile/${author.id}`} className='w-fit'>
-                    <h4 className='cursor-pointer text-small-semibold text-light-1 hover:underline'>
-                      {author.name}
+                <div className='flex min-w-0 items-center gap-2'>
+                  <Link href={`/profile/${plainAuthor.id}`} className='w-fit'>
+                    <h4 className='cursor-pointer truncate text-small-semibold text-light-1 hover:underline'>
+                      {plainAuthor.name}
                     </h4>
                   </Link>
-                  {author.username && (
-                    <span className='text-xs text-gray-1'>@{author.username}</span>
+                  {plainAuthor.username && (
+                    <span className='truncate text-xs text-gray-1'>@{plainAuthor.username}</span>
                   )}
                 </div>
               </div>
               
               {/* Content - SINGLE RENDERING */}
-              <div className='ml-2 mt-3'>
-                <div className='text-small-regular text-light-2'>
+              <div className='ml-1 mt-2 xs:ml-2 xs:mt-3'>
+                <div className='break-words text-small-regular text-light-2'>
                   {parseTextContent(content).map((part, index) => {
                     if (part.type === 'hashtag') {
                       return (
@@ -237,51 +268,38 @@ function ChirpCard({
               </div>
               
               {/* Media Gallery for community posts */}
-              {attachments && attachments.length > 0 && (
-                <div className="ml-2 mt-3">
-                  <MediaGallery media={attachments} className="max-h-96" />
+              {plainAttachments && plainAttachments.length > 0 && (
+                <div className="ml-1 mt-2 xs:ml-2 xs:mt-3">
+                  <MediaGallery media={plainAttachments} className="max-h-80 xs:max-h-96" />
                 </div>
               )}
               
               {/* Action buttons for community posts */}
-              <div className='ml-2 mt-5 flex flex-col gap-3'>
-                <div className='flex gap-3.5'>
+              <div className='ml-1 mt-3 flex flex-col gap-2 xs:ml-2 xs:mt-5 xs:gap-3'>
+                <div className='flex gap-2 xs:gap-3.5'>
                   {/* Like Button */}
                   <button 
                     onClick={handleLike}
                     disabled={isLoading}
-                    className='flex cursor-pointer items-center gap-2 transition-transform hover:scale-105 disabled:opacity-50'
+                    className='flex cursor-pointer items-center gap-1 transition-transform hover:scale-105 disabled:opacity-50 xs:gap-2'
                   >
                     <Image
                       src={isLiked ? '/assets/heart-filled.svg' : '/assets/heart-gray.svg'}
                       alt='like'
-                      width={24}
-                      height={24}
+                      width={20}
+                      height={20}
                       className={`object-contain ${isLiked ? 'text-red-500' : 'text-gray-500'}`}
                       unoptimized={true}
                     />
                     {likeCount > 0 && <span className='text-small-medium text-gray-1'>{likeCount}</span>}
                   </button>
                   
-                  {/* Reply Button */}
-                  <Link href={`/chirp/${id}`} className='flex items-center gap-2 transition-transform hover:scale-105'>
-                    <Image
-                      src='/assets/reply.svg'
-                      alt='reply'
-                      width={24}
-                      height={24}
-                      className='cursor-pointer object-contain'
-                      unoptimized={true}
-                    />
-                    {comments.length > 0 && <span className='text-small-medium text-gray-1'>{comments.length}</span>}
-                  </Link>
-                  
                   {/* Repost Button (placeholder for now) */}
                   <Image
                     src='/assets/repost.svg'
                     alt='repost'
-                    width={24}
-                    height={24}
+                    width={20}
+                    height={20}
                     className='cursor-pointer object-contain transition-transform hover:scale-105'
                     unoptimized={true}
                   />
@@ -290,28 +308,29 @@ function ChirpCard({
                   <button 
                     onClick={handleShare}
                     disabled={isLoading}
-                    className='flex cursor-pointer items-center gap-2 transition-transform hover:scale-105 disabled:opacity-50'
+                    className='flex cursor-pointer items-center gap-1 transition-transform hover:scale-105 disabled:opacity-50 xs:gap-2'
                   >
                     <Image
                       src='/assets/share.svg'
                       alt='share'
-                      width={24}
-                      height={24}
+                      width={20}
+                      height={20}
                       className='object-contain'
                       unoptimized={true}
                     />
                     {shareCount > 0 && <span className='text-small-medium text-gray-1'>{shareCount}</span>}
-                    {/* Delete Button */}
-                    <button className='flex items-center justify-center transition-transform hover:scale-105' title='Delete'>
-                      <Image
-                        src='/assets/delete.svg'
-                        alt='delete'
-                        width={22}
-                        height={22}
-                        className='object-contain'
-                        unoptimized={true}
-                      />
-                    </button>
+                  </button>
+                  
+                  {/* Delete Button */}
+                  <button className='flex items-center justify-center transition-transform hover:scale-105' title='Delete'>
+                    <Image
+                      src='/assets/delete.svg'
+                      alt='delete'
+                      width={20}
+                      height={20}
+                      className='object-contain'
+                      unoptimized={true}
+                    />
                   </button>
                 </div>
               </div>
@@ -320,9 +339,9 @@ function ChirpCard({
             /* Regular post layout (non-community or comment) */
               <>
               <div className='flex flex-col items-center'>
-                <Link href={`/profile/${author.id}`} className='relative size-11'>
+                <Link href={`/profile/${plainAuthor.id}`} className='relative size-10 xs:size-11'>
                   <Image
-                    src={author.image}
+                    src={plainAuthor.image}
                     alt='user_community_image'
                     fill
                     className='cursor-pointer rounded-full'
@@ -334,15 +353,15 @@ function ChirpCard({
                 {/* <div className='chirp-card_bar' /> */}
               </div>
 
-              <div className='flex w-full flex-col'>
-                <Link href={`/profile/${author.id}`} className='w-fit'>
-                  <h4 className='cursor-pointer text-base-semibold text-light-1'>
-                    {author.name}
+              <div className='flex w-full min-w-0 flex-col'>
+                <Link href={`/profile/${plainAuthor.id}`} className='w-fit'>
+                  <h4 className='cursor-pointer truncate text-base-semibold text-light-1'>
+                    {plainAuthor.name}
                   </h4>
                 </Link>
 
                 {/* Render content with embedded hashtags, mentions, links, and emails - SINGLE RENDERING */}
-                <div className='mt-2 text-small-regular text-light-2'>
+                <div className='mt-2 break-words text-small-regular text-light-2'>
                   {parseTextContent(content).map((part, index) => {
                     if (part.type === 'hashtag') {
                       return (
@@ -406,26 +425,26 @@ function ChirpCard({
                 </div>
 
                 {/* Media Gallery */}
-                {attachments && attachments.length > 0 && (
-                  <div className="mt-3">
-                    <MediaGallery media={attachments} className="max-h-96" />
+                {plainAttachments && plainAttachments.length > 0 && (
+                  <div className="mt-2 xs:mt-3">
+                    <MediaGallery media={plainAttachments} className="max-h-80 xs:max-h-96" />
                   </div>
                 )}
 
                 {/* Action buttons */}
-                <div className={`${isComment && "mb-10"} mt-5 flex flex-col gap-3`}>
-                  <div className='flex gap-3.5'>
+                <div className={`${isComment && "mb-10"} mt-3 flex flex-col gap-2 xs:mt-5 xs:gap-3`}>
+                  <div className='flex gap-2 xs:gap-3.5'>
                     {/* Like Button */}
                     <button 
                       onClick={handleLike}
                       disabled={isLoading}
-                      className='flex cursor-pointer items-center gap-2 transition-transform hover:scale-105 disabled:opacity-50'
+                      className='flex cursor-pointer items-center gap-1 transition-transform hover:scale-105 disabled:opacity-50 xs:gap-2'
                     >
                       <Image
                         src={isLiked ? '/assets/heart-filled.svg' : '/assets/heart-gray.svg'}
                         alt='like'
-                        width={24}
-                        height={24}
+                        width={20}
+                        height={20}
                         className={`object-contain ${isLiked ? 'text-red-500' : 'text-gray-500'}`}
                         unoptimized={true}
                       />
@@ -433,24 +452,24 @@ function ChirpCard({
                     </button>
                     
                     {/* Reply Button */}
-                    <Link href={`/chirp/${id}`} className='flex items-center gap-2 transition-transform hover:scale-105'>
+                    <Link href={`/chirp/${id}`} className='flex items-center gap-1 transition-transform hover:scale-105 xs:gap-2'>
                       <Image
                         src='/assets/reply.svg'
                         alt='reply'
-                        width={24}
-                        height={24}
+                        width={20}
+                        height={20}
                         className='cursor-pointer object-contain'
                         unoptimized={true}
                       />
-                      {comments.length > 0 && <span className='text-small-medium text-gray-1'>{comments.length}</span>}
+                      {plainComments.length > 0 && <span className='text-small-medium text-gray-1'>{plainComments.length}</span>}
                     </Link>
                     
                     {/* Repost Button (placeholder for now) */}
                     <Image
                       src='/assets/repost.svg'
                       alt='repost'
-                      width={24}
-                      height={24}
+                      width={20}
+                      height={20}
                       className='cursor-pointer object-contain transition-transform hover:scale-105'
                       unoptimized={true}
                     />
@@ -459,13 +478,13 @@ function ChirpCard({
                     <button 
                       onClick={handleShare}
                       disabled={isLoading}
-                      className='flex cursor-pointer items-center gap-2 transition-transform hover:scale-105 disabled:opacity-50'
+                      className='flex cursor-pointer items-center gap-1 transition-transform hover:scale-105 disabled:opacity-50 xs:gap-2'
                     >
                       <Image
                         src='/assets/share.svg'
                         alt='share'
-                        width={24}
-                        height={24}
+                        width={20}
+                        height={20}
                         className='object-contain'
                         unoptimized={true}
                       />
@@ -473,10 +492,10 @@ function ChirpCard({
                     </button>
                   </div>
 
-                  {isComment && comments.length > 0 && (
+                  {isComment && plainComments.length > 0 && (
                     <Link href={`/chirp/${id}`}>
                       <p className='mt-1 text-subtle-medium text-gray-1'>
-                        {comments.length} repl{comments.length > 1 ? "ies" : "y"}
+                        {plainComments.length} repl{plainComments.length > 1 ? "ies" : "y"}
                       </p>
                     </Link>
                   )}
@@ -488,7 +507,7 @@ function ChirpCard({
           <DeleteChirp
             chirpId={JSON.stringify(id)}
             currentUserId={currentUserId}
-            authorId={author.id}
+            authorId={plainAuthor.id}
             parentId={parentId}
             isComment={isComment}
           />
@@ -496,31 +515,31 @@ function ChirpCard({
       </div>
 
       {/* Comments section for non-community posts */}
-      {!isComment && !community && comments.length > 0 && (
-        <div className='ml-1 mt-3 flex items-center gap-2'>
-          {comments.slice(0, 2).map((comment, index) => (
+      {!isComment && !plainCommunity && plainComments.length > 0 && (
+        <div className='ml-1 mt-2 flex items-center gap-1 xs:mt-3 xs:gap-2'>
+          {plainComments.slice(0, 2).map((comment, index) => (
             <Image
               key={index}
               src={comment.author.image}
               alt={`user_${index}`}
-              width={24}
-              height={24}
-              className={`${index !== 0 && "-ml-5"} rounded-full object-cover`}
+              width={20}
+              height={20}
+              className={`${index !== 0 && "-ml-3 xs:-ml-5"} rounded-full object-cover`}
               unoptimized={true}
             />
           ))}
 
           <Link href={`/chirp/${id}`}>
             <p className='mt-1 text-subtle-medium text-gray-1'>
-              {comments.length} repl{comments.length > 1 ? "ies" : "y"}
+              {plainComments.length} repl{plainComments.length > 1 ? "ies" : "y"}
             </p>
           </Link>
         </div>
       )}
 
       {/* Show timestamp for non-community posts or comments */}
-      {!isComment && !community && (
-        <div className='mt-5 flex items-center'>
+      {!isComment && !plainCommunity && (
+        <div className='mt-3 flex items-center xs:mt-5'>
           <p className='text-subtle-medium text-gray-1'>
             {formatDateString(createdAt)}
           </p>
@@ -533,7 +552,7 @@ function ChirpCard({
         onClose={() => setShowSharePopup(false)}
         chirpUrl={`${typeof window !== 'undefined' ? window.location.origin : ''}/chirp/${id}`}
         chirpText={content}
-        authorName={author.name}
+        authorName={plainAuthor.name}
       />
     </article>
   );

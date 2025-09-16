@@ -176,6 +176,41 @@ async function serializeSmartPosts(posts: any[], currentUserId: string) {
     // Convert to plain object to remove MongoDB internal properties
     const plainPost = post.toObject ? post.toObject() : post;
     
+    // Process attachments to ensure they are plain objects
+    const processedAttachments = Array.isArray(plainPost.attachments) 
+      ? plainPost.attachments.map((attachment: any) => {
+          // If it's already a plain object, return as is
+          if (typeof attachment === 'object' && attachment !== null && !attachment._bsontype) {
+            return {
+              _id: attachment._id ? attachment._id.toString() : undefined,
+              type: attachment.type,
+              url: attachment.url,
+              filename: attachment.filename,
+              size: attachment.size,
+              duration: attachment.duration,
+              dimensions: attachment.dimensions,
+              thumbnail: attachment.thumbnail,
+              metadata: attachment.metadata
+            };
+          }
+          
+          // If it's a MongoDB object, convert to plain object
+          const plainAttachment = attachment.toObject ? attachment.toObject() : attachment;
+          
+          return {
+            _id: plainAttachment._id ? plainAttachment._id.toString() : undefined,
+            type: plainAttachment.type,
+            url: plainAttachment.url,
+            filename: plainAttachment.filename,
+            size: plainAttachment.size,
+            duration: plainAttachment.duration,
+            dimensions: plainAttachment.dimensions,
+            thumbnail: plainAttachment.thumbnail,
+            metadata: plainAttachment.metadata
+          };
+        })
+      : [];
+
     return {
       _id: plainPost._id.toString(),
       id: plainPost._id.toString(),
@@ -201,7 +236,7 @@ async function serializeSmartPosts(posts: any[], currentUserId: string) {
       communityTags: plainPost.communityTags || [],
       likes: plainPost.likes?.map((like: any) => like.toString()) || [],
       shares: plainPost.shares?.map((share: any) => share.toString()) || [],
-      attachments: plainPost.attachments || [],
+      attachments: processedAttachments,
       isLikedByCurrentUser: currentUserObjectId ? 
         plainPost.likes?.some((like: any) => like.toString() === currentUserObjectId.toString()) || false 
         : false,
@@ -243,6 +278,49 @@ async function getChronologicalFeed(userId: string, limit: number, skip: number)
     });
 
   // Convert Mongoose documents to plain objects before serialization
-  const plainPosts = posts.map(post => post.toObject ? post.toObject() : post);
+  const plainPosts = posts.map(post => {
+    const plainPost = post.toObject ? post.toObject() : post;
+    
+    // Process attachments to ensure they are plain objects
+    const processedAttachments = Array.isArray(plainPost.attachments) 
+      ? plainPost.attachments.map((attachment: any) => {
+          // If it's already a plain object, return as is
+          if (typeof attachment === 'object' && attachment !== null && !attachment._bsontype) {
+            return {
+              _id: attachment._id ? attachment._id.toString() : undefined,
+              type: attachment.type,
+              url: attachment.url,
+              filename: attachment.filename,
+              size: attachment.size,
+              duration: attachment.duration,
+              dimensions: attachment.dimensions,
+              thumbnail: attachment.thumbnail,
+              metadata: attachment.metadata
+            };
+          }
+          
+          // If it's a MongoDB object, convert to plain object
+          const plainAttachment = attachment.toObject ? attachment.toObject() : attachment;
+          
+          return {
+            _id: plainAttachment._id ? plainAttachment._id.toString() : undefined,
+            type: plainAttachment.type,
+            url: plainAttachment.url,
+            filename: plainAttachment.filename,
+            size: plainAttachment.size,
+            duration: plainAttachment.duration,
+            dimensions: plainAttachment.dimensions,
+            thumbnail: plainAttachment.thumbnail,
+            metadata: plainAttachment.metadata
+          };
+        })
+      : [];
+    
+    return {
+      ...plainPost,
+      attachments: processedAttachments
+    };
+  });
+  
   return await serializeSmartPosts(plainPosts, userId);
 }

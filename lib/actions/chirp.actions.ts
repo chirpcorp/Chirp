@@ -278,7 +278,7 @@ export async function createChirp({
 
 async function fetchAllChildChirps(chirpId: string, visited: Set<string> = new Set(), depth: number = 0): Promise<any[]> {
   // Prevent infinite recursion
-  if (depth > 100) {
+  if (depth > 50) { // Reduced from 100 to 50 for safety
     console.warn("Maximum depth reached in fetchAllChildChirps for chirp:", chirpId);
     return [];
   }
@@ -295,8 +295,11 @@ async function fetchAllChildChirps(chirpId: string, visited: Set<string> = new S
 
   const descendantChirps = [];
   for (const childChirp of childChirps) {
-    const descendants = await fetchAllChildChirps(childChirp._id?.toString() || '', new Set(visited), depth + 1);
-    descendantChirps.push(childChirp, ...descendants);
+    const childId = childChirp._id?.toString();
+    if (childId && !visited.has(childId)) { // Additional check before recursion
+      const descendants = await fetchAllChildChirps(childId, new Set(visited), depth + 1);
+      descendantChirps.push(childChirp, ...descendants);
+    }
   }
 
   return descendantChirps;
@@ -469,6 +472,13 @@ export async function addCommentToChirp(
       throw new Error("Chirp not found");
     }
 
+    // Validate that we're not creating a circular reference
+    if (chirpId === originalChirp._id?.toString()) {
+      // This is a safeguard but shouldn't happen in normal operation
+      console.warn("Attempting to comment on self, skipping");
+      return;
+    }
+
     // Create the new comment chirp
     const commentChirp = new Chirp({
       text: commentText,
@@ -508,6 +518,17 @@ export async function addCommentToChirp(
     }
 
     revalidatePath(path);
+    
+    // Return the saved comment for client-side updates
+    return {
+      _id: savedCommentChirp._id?.toString() || '',
+      text: savedCommentChirp.text,
+      author: {
+        _id: userObjectId.toString(),
+        // Add other author fields as needed
+      },
+      createdAt: savedCommentChirp.createdAt.toISOString(),
+    };
   } catch (err) {
     console.error("Error while adding comment:", err);
     throw new Error("Unable to add comment");

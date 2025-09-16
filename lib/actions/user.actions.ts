@@ -14,10 +14,54 @@ import User from "../models/user.model";
 
 import { connectToDB } from "../mongoose";
 
-export async function fetchUser(userId: string) {
-  try {
-    await connectToDB();
+// Add rate limiting cache
+const fetchUserCache = new Map<string, { data: any; timestamp: number }>();
+const CACHE_DURATION = 30000; // 30 seconds
 
+// Add rate limiting cache for fetchUsers
+const fetchUsersCache = new Map<string, { data: any; timestamp: number }>();
+const FETCH_USERS_CACHE_DURATION = 30000; // 30 seconds
+
+// Add safety checks to prevent infinite recursion
+let fetchUserCallCount = 0;
+let fetchUsersCallCount = 0;
+const MAX_CALLS = 10;
+
+export async function fetchUser(userId: string) {
+  // Prevent infinite recursion
+  fetchUserCallCount++;
+  if (fetchUserCallCount > MAX_CALLS) {
+    console.warn("Maximum calls exceeded for fetchUser, returning null");
+    fetchUserCallCount = 0; // Reset for next use
+    return null;
+  }
+
+  // Additional safety check for invalid userId
+  if (!userId || typeof userId !== 'string' || userId.length === 0) {
+    console.warn("Invalid userId provided to fetchUser:", userId);
+    fetchUserCallCount = 0; // Reset counter
+    return null;
+  }
+
+  try {
+    // Add safety check to prevent infinite recursion
+    if (!userId || userId === "undefined" || userId === "null") {
+      console.warn("Invalid userId provided to fetchUser:", userId);
+      fetchUserCallCount = 0; // Reset counter
+      return null;
+    }
+    
+    // Check cache first
+    const cached = fetchUserCache.get(userId);
+    if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+      fetchUserCallCount = 0; // Reset counter
+      return cached.data;
+    }
+    
+    // Attempt to connect to DB
+    await connectToDB();
+    
+    // If we reach here, the database connection is working
     const user = await User.findOne({ id: userId }).populate({
       path: "communities",
       model: Community,
@@ -25,50 +69,69 @@ export async function fetchUser(userId: string) {
 
     if (!user) {
       console.warn(`User not found for ID: ${userId}`);
+      fetchUserCallCount = 0; // Reset counter
       return null; // Return null instead of throwing an error
     }
 
     // Serialize to plain object to avoid circular references
-    return {
-      _id: user._id?.toString() || '',
-      id: user.id,
-      username: user.username,
-      name: user.name,
-      image: user.image,
-      bio: user.bio,
-      email: user.email,
-      website: user.website,
-      location: user.location,
-      dateOfBirth: user.dateOfBirth?.toISOString(),
-      joinedDate: user.joinedDate?.toISOString(),
-      followers: user.followers?.map((follower: any) => follower.toString()) || [],
-      following: user.following?.map((following: any) => following.toString()) || [],
-      followRequests: user.followRequests?.map((request: any) => ({
-        user: request.user.toString(),
-        requestedAt: request.requestedAt?.toISOString(),
-      })) || [],
-      sentFollowRequests: user.sentFollowRequests?.map((request: any) => ({
-        user: request.user.toString(),
-        requestedAt: request.requestedAt?.toISOString(),
-      })) || [],
-      blockedUsers: user.blockedUsers?.map((blocked: any) => blocked.toString()) || [],
-      reportedUsers: user.reportedUsers?.map((report: any) => ({
-        userId: report.userId.toString(),
-        reason: report.reason,
-        date: report.date?.toISOString(),
-      })) || [],
-      isPrivate: user.isPrivate || false,
-      chirps: user.chirps?.map((chirp: any) => chirp.toString()) || [],
-      onboarded: user.onboarded || false,
-      communities: user.communities?.map((community: any) => ({
-        _id: community._id?.toString() || '',
-        id: community.id,
-        name: community.name,
-        image: community.image,
-      })) || [],
-    };
+    // Use a more careful approach to serialization
+    const userObj: any = {};
+    
+    // Basic fields
+    userObj._id = user._id?.toString() || '';
+    userObj.id = user.id;
+    userObj.username = user.username;
+    userObj.name = user.name;
+    userObj.image = user.image;
+    userObj.bio = user.bio;
+    userObj.email = user.email;
+    userObj.website = user.website;
+    userObj.location = user.location;
+    userObj.dateOfBirth = user.dateOfBirth ? new Date(user.dateOfBirth).toISOString() : undefined;
+    userObj.joinedDate = user.joinedDate ? new Date(user.joinedDate).toISOString() : undefined;
+    userObj.isPrivate = user.isPrivate || false;
+    userObj.onboarded = user.onboarded || false;
+    
+    // Arrays - be very careful with these
+    userObj.followers = Array.isArray(user.followers) 
+      ? user.followers.map((item: any) => 
+          typeof item === 'string' ? item : (item?._id?.toString() || item?.toString() || ''))
+      : [];
+      
+    userObj.following = Array.isArray(user.following) 
+      ? user.following.map((item: any) => 
+          typeof item === 'string' ? item : (item?._id?.toString() || item?.toString() || ''))
+      : [];
+      
+    userObj.chirps = Array.isArray(user.chirps) 
+      ? user.chirps.map((item: any) => 
+          typeof item === 'string' ? item : (item?._id?.toString() || item?.toString() || ''))
+      : [];
+      
+    userObj.communities = Array.isArray(user.communities) 
+      ? user.communities.map((community: any) => ({
+          _id: community._id?.toString() || '',
+          id: community.id,
+          name: community.name,
+          image: community.image,
+        }))
+      : [];
+
+    // Cache the result
+    fetchUserCache.set(userId, { data: userObj, timestamp: Date.now() });
+    
+    // Reset call counter on successful completion
+    fetchUserCallCount = 0;
+
+    return userObj;
   } catch (error: any) {
+    // Reset call counter on error
+    fetchUserCallCount = 0;
     console.error("Error fetching user:", error);
+    // Check if it's a database connection error
+    if (error.message && (error.message.includes("MongoDB") || error.message.includes("buffering timed out"))) {
+      console.warn("Database connection failed, returning null for user fetch");
+    }
     // Return null instead of throwing an error to prevent server component crashes
     return null;
   }
@@ -100,7 +163,7 @@ export async function updateUser({
   dateOfBirth,
 }: Params): Promise<void> {
   try {
-    connectToDB();
+    await connectToDB();
 
     const updateData: any = {
       username: username.toLowerCase(),
@@ -131,16 +194,17 @@ export async function updateUser({
 
 export async function fetchUserPosts(userId: string, currentUserId?: string) {
   try {
-    // Add safety check
-    if (!userId) {
+    // Add comprehensive safety checks
+    if (!userId || userId === "undefined" || userId === "null") {
+      console.warn("Invalid userId provided to fetchUserPosts:", userId);
       return { chirps: [], name: '', image: '', id: '' };
     }
     
-    connectToDB();
+    await connectToDB();
 
     // Resolve current user's ObjectId if provided
     let currentUserObjectId: any = null;
-    if (currentUserId) {
+    if (currentUserId && currentUserId !== "undefined" && currentUserId !== "null") {
       try {
         currentUserObjectId = await resolveUserObjectId(currentUserId);
       } catch (error) {
@@ -149,9 +213,10 @@ export async function fetchUserPosts(userId: string, currentUserId?: string) {
     }
 
     // Find all chirps authored by the user with the given userId
-    const chirps = await User.findOne({ id: userId }).populate({
+    const userResult = await User.findOne({ id: userId }).populate({
       path: "chirps",
       model: Chirp,
+      options: { sort: { createdAt: -1 } }, // Sort by newest first
       populate: [
         {
           path: "author",
@@ -174,52 +239,89 @@ export async function fetchUserPosts(userId: string, currentUserId?: string) {
         },
       ],
     });
-    
+
     // Handle case where user has no chirps or user not found
-    if (!chirps) {
+    if (!userResult) {
+      console.warn("User not found:", userId);
       return { chirps: [], name: '', image: '', id: '' };
     }
     
+    // Convert to plain object to avoid circular references
+    const user: any = userResult.toObject ? userResult.toObject() : userResult;
+    
+    if (!user.chirps) {
+      console.warn("No chirps found for user:", userId);
+      return { chirps: [], name: user.name || '', image: user.image || '', id: user.id || '' };
+    }
+    
     // Serialize the chirps to plain objects
-    const serializedChirps = chirps.chirps.map((chirp: any) => ({
-      _id: chirp._id.toString(),
-      text: chirp.text,
-      parentId: chirp.parentId,
-      author: {
-        _id: chirp.author._id.toString(),
-        id: chirp.author.id,
-        name: chirp.author.name,
-        image: chirp.author.image,
-      },
-      community: chirp.community ? {
-        _id: chirp.community._id.toString(),
-        id: chirp.community.id,
-        name: chirp.community.name,
-        image: chirp.community.image,
-      } : null,
-      createdAt: chirp.createdAt.toISOString(),
-      children: chirp.children.map((child: any) => ({
-        _id: child._id.toString(),
-        author: {
-          image: child.author?.image || '/assets/user.svg',
+    const serializedChirps = user.chirps.map((chirp: any) => {
+      // Handle potential null/undefined values
+      if (!chirp) return null;
+      
+      return {
+        _id: chirp._id?.toString() || '',
+        text: chirp.text || '',
+        parentId: chirp.parentId || null,
+        author: chirp.author ? {
+          _id: chirp.author._id?.toString() || '',
+          id: chirp.author.id || '',
+          name: chirp.author.name || 'Unknown',
+          image: chirp.author.image || '/assets/user.svg',
+        } : {
+          _id: '',
+          id: '',
+          name: 'Unknown',
+          image: '/assets/user.svg',
         },
-      })),
-      hashtags: chirp.hashtags || [],
-      mentions: chirp.mentions?.map((mention: any) => ({ userId: mention.userId.toString(), username: mention.username })) || [],
-      communityTags: chirp.communityTags || [],
-      likes: chirp.likes?.map((like: any) => like.toString()) || [],
-      shares: chirp.shares?.map((share: any) => share.toString()) || [],
-      attachments: chirp.attachments || [],
-      isLikedByCurrentUser: currentUserObjectId ? 
-        chirp.likes?.some((like: any) => like.toString() === currentUserObjectId.toString()) || false 
-        : false,
-    }));
+        community: chirp.community ? {
+          _id: chirp.community._id?.toString() || '',
+          id: chirp.community.id || '',
+          name: chirp.community.name || '',
+          image: chirp.community.image || '',
+        } : null,
+        createdAt: chirp.createdAt ? new Date(chirp.createdAt).toISOString() : new Date().toISOString(),
+        children: Array.isArray(chirp.children) 
+          ? chirp.children.map((child: any) => ({
+              _id: child._id?.toString() || '',
+              author: child.author ? {
+                image: child.author.image || '/assets/user.svg',
+              } : {
+                image: '/assets/user.svg',
+              },
+            })).filter(Boolean)
+          : [],
+        hashtags: Array.isArray(chirp.hashtags) ? chirp.hashtags : [],
+        mentions: Array.isArray(chirp.mentions) 
+          ? chirp.mentions.map((mention: any) => ({
+              userId: typeof mention.userId === 'string' ? mention.userId : (mention.userId?.toString() || ''),
+              username: mention.username || '',
+            })).filter((m: any) => m.userId && m.username)
+          : [],
+        communityTags: Array.isArray(chirp.communityTags) ? chirp.communityTags : [],
+        likes: Array.isArray(chirp.likes) 
+          ? chirp.likes.map((like: any) => 
+              typeof like === 'string' ? like : (like.toString ? like.toString() : ''))
+          : [],
+        shares: Array.isArray(chirp.shares) 
+          ? chirp.shares.map((share: any) => 
+              typeof share === 'string' ? share : (share.toString ? share.toString() : ''))
+          : [],
+        attachments: Array.isArray(chirp.attachments) ? chirp.attachments : [],
+        isLikedByCurrentUser: currentUserObjectId && Array.isArray(chirp.likes) 
+          ? chirp.likes.some((like: any) => {
+              const likeId = typeof like === 'string' ? like : (like.toString ? like.toString() : '');
+              return likeId === currentUserObjectId.toString();
+            })
+          : false,
+      };
+    }).filter(Boolean); // Remove any null values
     
     return {
       chirps: serializedChirps,
-      name: chirps.name,
-      image: chirps.image,
-      id: chirps.id,
+      name: user.name || '',
+      image: user.image || '',
+      id: user.id || '',
     };
   } catch (error) {
     console.error("Error fetching user chirps:", error);
@@ -231,16 +333,17 @@ export async function fetchUserPosts(userId: string, currentUserId?: string) {
 // New function to fetch user replies
 export async function fetchUserReplies(userId: string, currentUserId?: string) {
   try {
-    // Add safety check
-    if (!userId) {
+    // Add comprehensive safety checks
+    if (!userId || userId === "undefined" || userId === "null") {
+      console.warn("Invalid userId provided to fetchUserReplies:", userId);
       return { chirps: [] };
     }
     
-    connectToDB();
+    await connectToDB();
 
     // Resolve current user's ObjectId if provided
     let currentUserObjectId: any = null;
-    if (currentUserId) {
+    if (currentUserId && currentUserId !== "undefined" && currentUserId !== "null") {
       try {
         currentUserObjectId = await resolveUserObjectId(currentUserId);
       } catch (error) {
@@ -251,6 +354,7 @@ export async function fetchUserReplies(userId: string, currentUserId?: string) {
     // First find the user's MongoDB ObjectId using their Clerk ID
     const user = await User.findOne({ id: userId });
     if (!user) {
+      console.warn("User not found for replies:", userId);
       return { chirps: [] };
     }
 
@@ -281,39 +385,60 @@ export async function fetchUserReplies(userId: string, currentUserId?: string) {
     .sort({ createdAt: "desc" });
 
     // Serialize the replies to plain objects
-    const serializedReplies = replies.map((reply: any) => ({
-      _id: reply._id.toString(),
-      text: reply.text,
-      parentId: reply.parentId,
-      author: {
-        _id: reply.author._id.toString(),
-        id: reply.author.id,
-        name: reply.author.name,
-        image: reply.author.image,
-      },
-      community: reply.community ? {
-        _id: reply.community._id.toString(),
-        id: reply.community.id,
-        name: reply.community.name,
-        image: reply.community.image,
-      } : null,
-      createdAt: reply.createdAt.toISOString(),
-      children: reply.children.map((child: any) => ({
-        _id: child._id.toString(),
+    const serializedReplies = replies.map((reply: any) => {
+      // Handle potential null/undefined values
+      if (!reply) return null;
+      
+      return {
+        _id: reply._id?.toString() || '',
+        text: reply.text || '',
+        parentId: reply.parentId || null,
         author: {
-          image: child.author?.image || '/assets/user.svg',
+          _id: reply.author?._id?.toString() || '',
+          id: reply.author?.id || '',
+          name: reply.author?.name || 'Unknown',
+          image: reply.author?.image || '/assets/user.svg',
         },
-      })),
-      hashtags: reply.hashtags || [],
-      mentions: reply.mentions?.map((mention: any) => ({ userId: mention.userId.toString(), username: mention.username })) || [],
-      communityTags: reply.communityTags || [],
-      likes: reply.likes?.map((like: any) => like.toString()) || [],
-      shares: reply.shares?.map((share: any) => share.toString()) || [],
-      attachments: reply.attachments || [],
-      isLikedByCurrentUser: currentUserObjectId ? 
-        reply.likes?.some((like: any) => like.toString() === currentUserObjectId.toString()) || false 
-        : false,
-    }));
+        community: reply.community ? {
+          _id: reply.community._id?.toString() || '',
+          id: reply.community.id || '',
+          name: reply.community.name || '',
+          image: reply.community.image || '',
+        } : null,
+        createdAt: reply.createdAt ? new Date(reply.createdAt).toISOString() : new Date().toISOString(),
+        children: Array.isArray(reply.children) 
+          ? reply.children.map((child: any) => ({
+              _id: child._id?.toString() || '',
+              author: {
+                image: child.author?.image || '/assets/user.svg',
+              },
+            })).filter(Boolean)
+          : [],
+        hashtags: Array.isArray(reply.hashtags) ? reply.hashtags : [],
+        mentions: Array.isArray(reply.mentions) 
+          ? reply.mentions.map((mention: any) => ({
+              userId: typeof mention.userId === 'string' ? mention.userId : (mention.userId?.toString() || ''),
+              username: mention.username || '',
+            })).filter((m: any) => m.userId && m.username)
+          : [],
+        communityTags: Array.isArray(reply.communityTags) ? reply.communityTags : [],
+        likes: Array.isArray(reply.likes) 
+          ? reply.likes.map((like: any) => 
+              typeof like === 'string' ? like : (like.toString ? like.toString() : ''))
+          : [],
+        shares: Array.isArray(reply.shares) 
+          ? reply.shares.map((share: any) => 
+              typeof share === 'string' ? share : (share.toString ? share.toString() : ''))
+          : [],
+        attachments: Array.isArray(reply.attachments) ? reply.attachments : [],
+        isLikedByCurrentUser: currentUserObjectId && Array.isArray(reply.likes) 
+          ? reply.likes.some((like: any) => {
+              const likeId = typeof like === 'string' ? like : (like.toString ? like.toString() : '');
+              return likeId === currentUserObjectId.toString();
+            })
+          : false,
+      };
+    }).filter(Boolean); // Remove any null values
 
     return { chirps: serializedReplies };
   } catch (error) {
@@ -337,7 +462,45 @@ export async function fetchUsers({
   pageSize?: number;
   sortBy?: SortOrder;
 }) {
+  // Prevent infinite recursion
+  fetchUsersCallCount++;
+  if (fetchUsersCallCount > MAX_CALLS) {
+    console.warn("Maximum calls exceeded for fetchUsers, returning empty result");
+    fetchUsersCallCount = 0; // Reset for next use
+    return { users: [], isNext: false };
+  }
+
+  // Additional safety check to prevent recursive calls with same parameters
+  const callSignature = `${userId}-${searchString}-${pageNumber}-${pageSize}-${sortBy}`;
+  const currentTime = Date.now();
+  
+  // Prevent rapid repeated calls with same parameters
+  if (fetchUsersCache.has(callSignature)) {
+    const cached = fetchUsersCache.get(callSignature);
+    if (cached && currentTime - cached.timestamp < 1000) { // 1 second throttle
+      fetchUsersCallCount = 0; // Reset counter
+      return cached.data;
+    }
+  }
+
   try {
+    // Additional safety check for invalid parameters
+    if (!userId || typeof userId !== 'string' || userId.length === 0 || 
+        typeof searchString !== 'string' || pageNumber < 1 || pageSize < 1 || pageSize > 100) {
+      console.warn("Invalid parameters provided to fetchUsers");
+      return { users: [], isNext: false };
+    }
+    
+    // Create cache key
+    const cacheKey = `${userId}-${searchString}-${pageNumber}-${pageSize}-${sortBy}`;
+    
+    // Check cache first
+    const cached = fetchUsersCache.get(cacheKey);
+    if (cached && Date.now() - cached.timestamp < FETCH_USERS_CACHE_DURATION) {
+      fetchUsersCallCount = 0; // Reset counter
+      return cached.data;
+    }
+
     await connectToDB();
 
     // Calculate the number of users to skip based on the page number and page size.
@@ -375,8 +538,18 @@ export async function fetchUsers({
     // Check if there are more users beyond the current page.
     const isNext = totalUsersCount > skipAmount + users.length;
 
-    return { users, isNext };
+    const result = { users, isNext };
+    
+    // Cache the result
+    fetchUsersCache.set(cacheKey, { data: result, timestamp: Date.now() });
+    
+    // Reset call counter on successful completion
+    fetchUsersCallCount = 0;
+
+    return result;
   } catch (error) {
+    // Reset call counter on error
+    fetchUsersCallCount = 0;
     console.error("Error fetching users:", error);
     throw error;
   }
@@ -642,8 +815,24 @@ export async function getUserRelationship(currentUserId: string, targetUserId: s
   try {
     await connectToDB();
 
-    // Add safety checks
-    if (!currentUserId || !targetUserId) {
+    // Add comprehensive safety checks to prevent infinite recursion
+    if (!currentUserId || !targetUserId || currentUserId === targetUserId) {
+      console.warn("Invalid user relationship request:", { currentUserId, targetUserId });
+      return {
+        isFollowing: false,
+        isBlocked: false,
+        isReported: false,
+        hasPendingRequest: false,
+        hasIncomingRequest: false,
+        followersCount: 0,
+        followingCount: 0
+      };
+    }
+
+    // Additional validation to prevent malformed IDs
+    if (currentUserId === "undefined" || targetUserId === "undefined" || 
+        currentUserId === "null" || targetUserId === "null") {
+      console.warn("Invalid user relationship request with undefined/null values:", { currentUserId, targetUserId });
       return {
         isFollowing: false,
         isBlocked: false,
@@ -659,6 +848,7 @@ export async function getUserRelationship(currentUserId: string, targetUserId: s
     const targetUser = await User.findOne({ id: targetUserId });
 
     if (!currentUser || !targetUser) {
+      console.warn("User not found in relationship check:", { currentUserId, targetUserId });
       return {
         isFollowing: false,
         isBlocked: false,

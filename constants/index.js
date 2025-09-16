@@ -36,7 +36,7 @@ export const sidebarLinks = [
   },
   {
     imgURL: "/assets/user.svg",
-    route: "/profile",
+    route: "/profile", // This will now redirect to the user's profile
     label: "Profile",
   },
 ];

@@ -13,7 +13,6 @@ import {
   FormField,
   FormItem,
   FormLabel,
-  FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -24,6 +23,7 @@ import { isBase64Image } from "@/lib/utils";
 
 import { UserValidation } from "@/lib/validations/user";
 import { updateUser } from "@/lib/actions/user.actions";
+import ImageCropper from "@/components/shared/ImageCropper";
 
 interface Props {
   user: {
@@ -46,6 +46,8 @@ const AccountProfile = ({ user, btnTitle }: Props) => {
   const { startUpload } = useUploadThing("media");
 
   const [files, setFiles] = useState<File[]>([]);
+  const [showCropper, setShowCropper] = useState(false);
+  const [tempImage, setTempImage] = useState<string | null>(null);
 
   const form = useForm<z.infer<typeof UserValidation>>({
     resolver: zodResolver(UserValidation),
@@ -66,10 +68,21 @@ const AccountProfile = ({ user, btnTitle }: Props) => {
 
     const hasImageChanged = isBase64Image(blob);
     if (hasImageChanged) {
-      const imgRes = await startUpload(files);
+      try {
+        const imgRes = await startUpload(files);
 
-      if (imgRes && imgRes[0].url) {
-        values.profile_photo = imgRes[0].url;
+        // Add proper error handling for the upload result
+        if (imgRes && Array.isArray(imgRes) && imgRes.length > 0 && imgRes[0]?.url) {
+          values.profile_photo = imgRes[0].url;
+        } else {
+          // If upload fails or doesn't return a URL, keep the original image
+          console.warn("Image upload failed or didn't return a URL, keeping original image");
+          values.profile_photo = user?.image || "";
+        }
+      } catch (error) {
+        console.error("Error uploading image:", error);
+        // If upload fails, keep the original image
+        values.profile_photo = user?.image || "";
       }
     }
 
@@ -109,11 +122,35 @@ const AccountProfile = ({ user, btnTitle }: Props) => {
 
       fileReader.onload = async (event) => {
         const imageDataUrl = event.target?.result?.toString() || "";
-        fieldChange(imageDataUrl);
+        // Set temp image and show cropper instead of directly setting the field
+        setTempImage(imageDataUrl);
+        setShowCropper(true);
       };
 
       fileReader.readAsDataURL(file);
     }
+  };
+
+  const handleCropComplete = (croppedImage: string) => {
+    // Convert the cropped image to a file and update the form field
+    fetch(croppedImage)
+      .then(res => res.blob())
+      .then(blob => {
+        const croppedFile = new File([blob], "cropped-image.jpg", { type: "image/jpeg" });
+        setFiles([croppedFile]);
+        
+        // Update the form field with the cropped image data URL
+        form.setValue('profile_photo', croppedImage);
+        
+        // Close the cropper
+        setShowCropper(false);
+        setTempImage(null);
+      });
+  };
+
+  const handleCropCancel = () => {
+    setShowCropper(false);
+    setTempImage(null);
   };
 
   return (
@@ -175,7 +212,6 @@ const AccountProfile = ({ user, btnTitle }: Props) => {
                   {...field}
                 />
               </FormControl>
-              <FormMessage />
             </FormItem>
           )}
         />
@@ -195,7 +231,6 @@ const AccountProfile = ({ user, btnTitle }: Props) => {
                   {...field}
                 />
               </FormControl>
-              <FormMessage />
             </FormItem>
           )}
         />
@@ -215,7 +250,6 @@ const AccountProfile = ({ user, btnTitle }: Props) => {
                   {...field}
                 />
               </FormControl>
-              <FormMessage />
             </FormItem>
           )}
         />
@@ -236,7 +270,6 @@ const AccountProfile = ({ user, btnTitle }: Props) => {
                   {...field}
                 />
               </FormControl>
-              <FormMessage />
             </FormItem>
           )}
         />
@@ -257,7 +290,6 @@ const AccountProfile = ({ user, btnTitle }: Props) => {
                   {...field}
                 />
               </FormControl>
-              <FormMessage />
             </FormItem>
           )}
         />
@@ -278,7 +310,6 @@ const AccountProfile = ({ user, btnTitle }: Props) => {
                   {...field}
                 />
               </FormControl>
-              <FormMessage />
             </FormItem>
           )}
         />
@@ -298,7 +329,6 @@ const AccountProfile = ({ user, btnTitle }: Props) => {
                   {...field}
                 />
               </FormControl>
-              <FormMessage />
             </FormItem>
           )}
         />
@@ -307,6 +337,15 @@ const AccountProfile = ({ user, btnTitle }: Props) => {
           {btnTitle}
         </Button>
       </form>
+
+      {/* Image Cropper Modal */}
+      {showCropper && tempImage && (
+        <ImageCropper
+          src={tempImage}
+          onCropComplete={handleCropComplete}
+          onCancel={handleCropCancel}
+        />
+      )}
     </Form>
   );
 };

@@ -1,8 +1,9 @@
 "use client";
-"use client";
 
 import { useState } from "react";
 import { updateUserPrivacy } from "@/lib/actions/user.actions";
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface UserInfo {
   _id: string;
@@ -25,6 +26,11 @@ interface Props {
 export default function PrivacySettings({ userInfo }: Props) {
   const [isPrivate, setIsPrivate] = useState(userInfo.isPrivate || false);
   const [loading, setLoading] = useState(false);
+  const [whoCanSeePosts, setWhoCanSeePosts] = useState("everyone");
+  const [whoCanSeeProfile, setWhoCanSeeProfile] = useState("everyone");
+  const [whoCanDm, setWhoCanDm] = useState("everyone");
+  const [whoCanReply, setWhoCanReply] = useState("everyone");
+  const [whoCanMention, setWhoCanMention] = useState("everyone");
 
   const handlePrivacyToggle = async (checked: boolean) => {
     setLoading(true);
@@ -70,7 +76,7 @@ export default function PrivacySettings({ userInfo }: Props) {
                 disabled={loading}
                 onChange={(e) => handlePrivacyToggle(e.target.checked)}
               />
-              <div className="peer-focus:ring-primary-300 dark:peer-focus:ring-primary-800 peer-checked:bg-primary-600 peer h-6 w-11 rounded-full bg-gray-200 after:absolute after:left-[2px] after:top-[2px] after:size-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700"></div>
+              <div className="peer-checked:bg-primary-600 peer-focus:ring-primary-300 peer h-6 w-11 rounded-full bg-gray-200 after:absolute after:left-[2px] after:top-[2px] after:size-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700"></div>
             </label>
           </div>
         </div>
@@ -81,17 +87,22 @@ export default function PrivacySettings({ userInfo }: Props) {
         <h3 className="mb-4 text-heading4-medium text-light-1">
           Who Can See Your Content
         </h3>
-        <div className="space-y-4">
+        <div className="space-y-6">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-body-medium text-light-1">Posts and Replies</p>
               <p className="text-small-regular text-gray-1">Control who can see your posts and replies</p>
             </div>
-            <select className="rounded-lg border border-dark-4 bg-dark-3 px-3 py-2 text-light-1">
-              <option value="everyone">Everyone</option>
-              <option value="followers">Followers only</option>
-              <option value="mentioned">People you mention</option>
-            </select>
+            <Select value={whoCanSeePosts} onValueChange={setWhoCanSeePosts}>
+              <SelectTrigger className="w-48">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="everyone">Everyone</SelectItem>
+                <SelectItem value="followers">Followers only</SelectItem>
+                <SelectItem value="mentioned">People you mention</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="flex items-center justify-between">
@@ -99,10 +110,15 @@ export default function PrivacySettings({ userInfo }: Props) {
               <p className="text-body-medium text-light-1">Profile Information</p>
               <p className="text-small-regular text-gray-1">Who can see your bio, location, and website</p>
             </div>
-            <select className="rounded-lg border border-dark-4 bg-dark-3 px-3 py-2 text-light-1">
-              <option value="everyone">Everyone</option>
-              <option value="followers">Followers only</option>
-            </select>
+            <Select value={whoCanSeeProfile} onValueChange={setWhoCanSeeProfile}>
+              <SelectTrigger className="w-48">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="everyone">Everyone</SelectItem>
+                <SelectItem value="followers">Followers only</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
       </div>
@@ -112,17 +128,22 @@ export default function PrivacySettings({ userInfo }: Props) {
         <h3 className="mb-4 text-heading4-medium text-light-1">
           Who Can Interact With You
         </h3>
-        <div className="space-y-4">
+        <div className="space-y-6">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-body-medium text-light-1">Direct Messages</p>
               <p className="text-small-regular text-gray-1">Who can send you direct messages</p>
             </div>
-            <select className="rounded-lg border border-dark-4 bg-dark-3 px-3 py-2 text-light-1">
-              <option value="everyone">Everyone</option>
-              <option value="followers">Followers only</option>
-              <option value="none">No one</option>
-            </select>
+            <Select value={whoCanDm} onValueChange={setWhoCanDm}>
+              <SelectTrigger className="w-48">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="everyone">Everyone</SelectItem>
+                <SelectItem value="followers">Followers only</SelectItem>
+                <SelectItem value="none">No one</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="flex items-center justify-between">
@@ -130,12 +151,17 @@ export default function PrivacySettings({ userInfo }: Props) {
               <p className="text-body-medium text-light-1">Reply to Posts</p>
               <p className="text-small-regular text-gray-1">Who can reply to your posts</p>
             </div>
-            <select className="rounded-lg border border-dark-4 bg-dark-3 px-3 py-2 text-light-1">
-              <option value="everyone">Everyone</option>
-              <option value="followers">Followers only</option>
-              <option value="mentioned">People you mention</option>
-              <option value="none">No one</option>
-            </select>
+            <Select value={whoCanReply} onValueChange={setWhoCanReply}>
+              <SelectTrigger className="w-48">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="everyone">Everyone</SelectItem>
+                <SelectItem value="followers">Followers only</SelectItem>
+                <SelectItem value="mentioned">People you mention</SelectItem>
+                <SelectItem value="none">No one</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="flex items-center justify-between">
@@ -143,11 +169,16 @@ export default function PrivacySettings({ userInfo }: Props) {
               <p className="text-body-medium text-light-1">Mentions</p>
               <p className="text-small-regular text-gray-1">Who can mention you in posts</p>
             </div>
-            <select className="rounded-lg border border-dark-4 bg-dark-3 px-3 py-2 text-light-1">
-              <option value="everyone">Everyone</option>
-              <option value="followers">Followers only</option>
-              <option value="none">No one</option>
-            </select>
+            <Select value={whoCanMention} onValueChange={setWhoCanMention}>
+              <SelectTrigger className="w-48">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="everyone">Everyone</SelectItem>
+                <SelectItem value="followers">Followers only</SelectItem>
+                <SelectItem value="none">No one</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
       </div>
@@ -178,6 +209,13 @@ export default function PrivacySettings({ userInfo }: Props) {
             </div>
           </button>
         </div>
+      </div>
+
+      {/* Save Button */}
+      <div className="flex justify-end">
+        <Button className="hover:bg-primary-600 bg-primary-500">
+          Save Changes
+        </Button>
       </div>
     </div>
   );

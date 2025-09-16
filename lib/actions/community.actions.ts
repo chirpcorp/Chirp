@@ -10,6 +10,14 @@ import User from "../models/user.model";
 import { connectToDB } from "../mongoose";
 import { resolveUserObjectId } from "../utils/userIdResolver";
 
+// Add rate limiting cache
+const fetchCommunitiesCache = new Map<string, { data: any; timestamp: number }>();
+const CACHE_DURATION = 30000; // 30 seconds
+
+// Add a safety check to prevent infinite recursion
+let fetchCommunitiesCallCount = 0;
+const MAX_CALLS = 10;
+
 // Create a new community (Facebook group style)
 export async function createCommunity({
   name,
@@ -243,7 +251,7 @@ export async function approveJoinRequest({
   path: string;
 }) {
   try {
-    connectToDB();
+    await connectToDB();
 
     const adminObjectId = await resolveUserObjectId(adminId);
     const requestUserObjectId = await resolveUserObjectId(requestUserId);
@@ -311,7 +319,7 @@ export async function rejectJoinRequest({
   path: string;
 }) {
   try {
-    connectToDB();
+    await connectToDB();
 
     const adminObjectId = await resolveUserObjectId(adminId);
     const requestUserObjectId = await resolveUserObjectId(requestUserId);
@@ -366,7 +374,7 @@ export async function removeMember({
   path: string;
 }) {
   try {
-    connectToDB();
+    await connectToDB();
 
     const adminObjectId = await resolveUserObjectId(adminId);
     const memberObjectId = await resolveUserObjectId(memberId);
@@ -434,7 +442,7 @@ export async function promoteToAdmin({
   path: string;
 }) {
   try {
-    connectToDB();
+    await connectToDB();
 
     const creatorObjectId = await resolveUserObjectId(creatorId);
     const memberObjectId = await resolveUserObjectId(memberId);
@@ -541,6 +549,12 @@ export async function deleteCommunity({
 
 // Fetch community details with privacy-aware member info
 export async function fetchCommunityDetails(id: string, currentUserId?: string) {
+  // Additional safety check for invalid id
+  if (!id || typeof id !== 'string' || id.length === 0) {
+    console.warn("Invalid community id provided to fetchCommunityDetails:", id);
+    return null;
+  }
+
   try {
     await connectToDB();
 
@@ -687,6 +701,12 @@ export async function fetchCommunityDetails(id: string, currentUserId?: string) 
 
 // Fetch community posts with privacy controls
 export async function fetchCommunityPosts(id: string, currentUserId?: string) {
+  // Additional safety check for invalid id
+  if (!id || typeof id !== 'string' || id.length === 0) {
+    console.warn("Invalid community id provided to fetchCommunityPosts:", id);
+    return { chirps: [] };
+  }
+
   try {
     await connectToDB();
 
@@ -731,60 +751,82 @@ export async function fetchCommunityPosts(id: string, currentUserId?: string) {
     });
 
     // Serialize the community posts with Facebook-style community info
-    const serializedChirps = communityWithPosts.chirps.map((chirp: any) => ({
-      _id: chirp._id.toString(),
-      text: chirp.text,
-      parentId: chirp.parentId,
-      author: {
-        _id: chirp.author._id.toString(),
-        id: chirp.author.id,
-        name: chirp.author.name,
-        username: chirp.author.username,
-        image: chirp.author.image,
-      },
-      community: {
-        _id: community._id.toString(),
-        id: community.id,
-        name: community.name,
-        username: community.username,
-        image: community.image,
-        isPrivate: community.isPrivate,
-      },
-      createdAt: chirp.createdAt.toISOString(),
-      children: chirp.children.map((child: any) => ({
-        _id: child._id.toString(),
+    const serializedChirps = communityWithPosts.chirps.map((chirp: any) => {
+      // Handle potential null/undefined values
+      if (!chirp) return null;
+      
+      return {
+        _id: chirp._id?.toString() || '',
+        text: chirp.text || '',
+        parentId: chirp.parentId || null,
         author: {
-          _id: child.author._id.toString(),
-          name: child.author.name,
-          username: child.author.username,
-          image: child.author?.image || '/assets/user.svg',
+          _id: chirp.author?._id?.toString() || '',
+          id: chirp.author?.id || '',
+          name: chirp.author?.name || 'Unknown',
+          username: chirp.author?.username || '',
+          image: chirp.author?.image || '/assets/user.svg',
         },
-      })),
-      hashtags: chirp.hashtags || [],
-      mentions: chirp.mentions?.map((mention: any) => ({ userId: mention.userId.toString(), username: mention.username })) || [],
-      communityTags: chirp.communityTags || [],
-      likes: chirp.likes?.map((like: any) => like.toString()) || [],
-      shares: chirp.shares?.map((share: any) => share.toString()) || [],
-      attachments: chirp.attachments || [],
-      isLikedByCurrentUser: currentUserObjectId ?
-        chirp.likes?.some((like: any) => like.toString() === currentUserObjectId.toString()) || false
-        : false,
-    }));
+        community: {
+          _id: community._id?.toString() || '',
+          id: community.id || '',
+          name: community.name || '',
+          username: community.username || '',
+          image: community.image || '',
+          isPrivate: community.isPrivate || false,
+        },
+        createdAt: chirp.createdAt ? new Date(chirp.createdAt).toISOString() : new Date().toISOString(),
+        children: Array.isArray(chirp.children) 
+          ? chirp.children.map((child: any) => ({
+              _id: child._id?.toString() || '',
+              author: {
+                _id: child.author?._id?.toString() || '',
+                name: child.author?.name || 'Unknown',
+                username: child.author?.username || '',
+                image: child.author?.image || '/assets/user.svg',
+              },
+            })).filter(Boolean)
+          : [],
+        hashtags: Array.isArray(chirp.hashtags) ? chirp.hashtags : [],
+        mentions: Array.isArray(chirp.mentions) 
+          ? chirp.mentions.map((mention: any) => ({
+              userId: typeof mention.userId === 'string' ? mention.userId : (mention.userId?.toString() || ''),
+              username: mention.username || '',
+            })).filter((m: any) => m.userId && m.username)
+          : [],
+        communityTags: Array.isArray(chirp.communityTags) ? chirp.communityTags : [],
+        likes: Array.isArray(chirp.likes) 
+          ? chirp.likes.map((like: any) => 
+              typeof like === 'string' ? like : (like.toString ? like.toString() : ''))
+          : [],
+        shares: Array.isArray(chirp.shares) 
+          ? chirp.shares.map((share: any) => 
+              typeof share === 'string' ? share : (share.toString ? share.toString() : ''))
+          : [],
+        attachments: Array.isArray(chirp.attachments) ? chirp.attachments : [],
+        isLikedByCurrentUser: currentUserObjectId && Array.isArray(chirp.likes) 
+          ? chirp.likes.some((like: any) => {
+              const likeId = typeof like === 'string' ? like : (like.toString ? like.toString() : '');
+              return likeId === currentUserObjectId.toString();
+            })
+          : false,
+      };
+    }).filter(Boolean); // Remove any null values
 
     return {
       chirps: serializedChirps,
       community: {
-        _id: community._id.toString(),
-        id: community.id,
-        name: community.name,
-        username: community.username,
-        image: community.image,
-        isPrivate: community.isPrivate,
+        _id: community._id?.toString() || '',
+        id: community.id || '',
+        name: community.name || '',
+        username: community.username || '',
+        image: community.image || '',
+        isPrivate: community.isPrivate || false,
       },
     };
   } catch (error) {
     console.error("Error fetching community posts:", error);
-    throw error;
+    // Return empty data instead of throwing an error
+    return { chirps: [] };
   }
 }
 
@@ -802,96 +844,157 @@ export async function fetchCommunities({
   sortBy?: SortOrder;
   currentUserId?: string;
 }) {
+  // Prevent infinite recursion
+  fetchCommunitiesCallCount++;
+  if (fetchCommunitiesCallCount > MAX_CALLS) {
+    console.warn("Maximum calls exceeded for fetchCommunities, returning empty result");
+    fetchCommunitiesCallCount = 0; // Reset for next use
+    return { communities: [], isNext: false };
+  }
+
+  // Additional safety check to prevent recursive calls with same parameters
+  const callSignature = `${searchString}-${pageNumber}-${pageSize}-${sortBy}-${currentUserId || 'anonymous'}`;
+  const currentTime = Date.now();
+  
+  // Prevent rapid repeated calls with same parameters
+  if (fetchCommunitiesCache.has(callSignature)) {
+    const cached = fetchCommunitiesCache.get(callSignature);
+    if (cached && currentTime - cached.timestamp < 1000) { // 1 second throttle
+      fetchCommunitiesCallCount = 0; // Reset counter
+      return cached.data;
+    }
+  }
+
   try {
+    // Additional safety check for invalid parameters
+    if (typeof searchString !== 'string' || pageNumber < 1 || pageSize < 1 || pageSize > 100) {
+      console.warn("Invalid parameters provided to fetchCommunities");
+      return { communities: [], isNext: false };
+    }
+    
+    // Create cache key
+    const cacheKey = `${searchString}-${pageNumber}-${pageSize}-${sortBy}-${currentUserId || 'anonymous'}`;
+    
+    // Check cache first
+    const cached = fetchCommunitiesCache.get(cacheKey);
+    if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+      fetchCommunitiesCallCount = 0; // Reset counter
+      return cached.data;
+    }
+    
     await connectToDB();
 
-    const currentUserObjectId = currentUserId ? await resolveUserObjectId(currentUserId) : null;
+    // Resolve current user's ObjectId if provided
+    let currentUserObjectId: any = null;
+    if (currentUserId) {
+      try {
+        currentUserObjectId = await resolveUserObjectId(currentUserId);
+      } catch (error) {
+        console.error('Error resolving current user ObjectId:', error);
+      }
+    }
+
+    // Create search filter
+    const regex = new RegExp(searchString, "i");
+
+    // Filter out private communities for non-authenticated users
+    const baseFilter: FilterQuery<typeof Community> = {
+      $or: [
+        { name: { $regex: regex } },
+        { username: { $regex: regex } },
+      ],
+    };
+
+    // If user is not authenticated, only show public communities
+    if (!currentUserObjectId) {
+      baseFilter.isPrivate = { $ne: true };
+    }
 
     // Calculate the number of communities to skip based on the page number and page size.
     const skipAmount = (pageNumber - 1) * pageSize;
 
-    // Create a case-insensitive regular expression for the provided search string.
-    const regex = new RegExp(searchString, "i");
-
-    // Create an initial query object to filter communities.
-    const query: FilterQuery<typeof Community> = {};
-
-    // If the search string is not empty, add the $or operator to match either username or name fields.
-    if (searchString.trim() !== "") {
-      query.$or = [
-        { username: { $regex: regex } },
-        { name: { $regex: regex } },
-      ];
-    }
-
-    // Define the sort options for the fetched communities based on createdAt field and provided sort order.
-    const sortOptions = { createdAt: sortBy };
-
-    // Create a query to fetch the communities based on the search and sort criteria.
-    const communitiesQuery = Community.find(query)
-      .sort(sortOptions)
+    // Create a query to fetch the communities based on the search and filter criteria.
+    const query = Community.find(baseFilter)
+      .sort({ createdAt: sortBy })
       .skip(skipAmount)
       .limit(pageSize)
-      .populate([
-        {
-          path: "creator",
-          model: User,
-          select: "name username image _id id",
-        },
-        {
-          path: "members.user",
-          model: User,
-          select: "name username image _id id",
-        },
-      ]);
+      .populate("members.user", "id name username image")
+      .populate("creator", "id name username image");
 
-    // Count the total number of communities that match the search criteria (without pagination).
-    const totalCommunitiesCount = await Community.countDocuments(query);
+    const totalCommunitiesCount = await Community.countDocuments(baseFilter);
 
-    const communities = await communitiesQuery.exec();
+    const communities = await query.exec();
 
-    // Serialize communities with privacy-aware data
-    const serializedCommunities = communities.map((community: any) => {
-      // Add null safety checks
-      const isMember = currentUserObjectId && community.isMember ? community.isMember(currentUserObjectId) : false;
-      const isAdmin = currentUserObjectId && community.isAdmin ? community.isAdmin(currentUserObjectId) : false;
-      const isCreator = currentUserObjectId && community.isCreator ? community.isCreator(currentUserObjectId) : false;
+    const isNext = totalCommunitiesCount > skipAmount + communities.length;
+
+    // Serialize communities data
+    const serializedCommunities = communities.map((community) => {
+      // Get member count
+      const memberCount = community.members && Array.isArray(community.members) 
+        ? community.members.length
+        : 0;
+
+      // Check if current user is a member
+      const isMember = currentUserObjectId
+        ? community.isMember(currentUserObjectId)
+        : false;
+
+      // Check if current user is an admin
+      const isAdmin = currentUserObjectId
+        ? community.isAdmin(currentUserObjectId)
+        : false;
+
+      // Check if current user has a pending join request
+      const hasPendingRequest = currentUserObjectId && typeof community.hasPendingRequest === 'function'
+        ? community.hasPendingRequest(currentUserObjectId)
+        : false;
+
+      // Safely handle creator object
+      const creator = community.creator ? {
+        id: community.creator.id || '',
+        name: community.creator.name || '',
+        username: community.creator.username || '',
+        image: community.creator.image || '/assets/user.svg',
+      } : {
+        id: '',
+        name: '',
+        username: '',
+        image: '/assets/user.svg',
+      };
 
       return {
-        _id: community._id.toString(),
         id: community.id,
+        _id: community._id.toString(),
         name: community.name,
         username: community.username,
-        description: community.description,
         image: community.image,
+        coverImage: community.coverImage,
+        description: community.description,
         isPrivate: community.isPrivate,
-        memberCount: community.memberCount,
-        postCount: community.postCount,
-        creator: community.creator ? {
-          _id: community.creator._id.toString(),
-          id: community.creator.id,
-          name: community.creator.name,
-          username: community.creator.username,
-          image: community.creator.image,
-        } : null,
-        tags: community.tags,
-        createdAt: community.createdAt.toISOString(),
-        isMember: isMember || false,
-        isAdmin: isAdmin || false,
-        isCreator: isCreator || false,
-        userRole: community.getMemberRole ? community.getMemberRole(currentUserObjectId) : null,
-        // Only show member list for public communities or if user is a member
-        showMembers: !community.isPrivate || isMember,
+        memberCount,
+        isMember,
+        isAdmin,
+        hasPendingRequest,
+        creator,
+        tags: community.tags || [],
+        rules: community.rules || [],
       };
     });
 
-    // Check if there are more communities beyond the current page.
-    const isNext = totalCommunitiesCount > skipAmount + communities.length;
+    const result = { communities: serializedCommunities, isNext };
+    
+    // Cache the result
+    fetchCommunitiesCache.set(cacheKey, { data: result, timestamp: Date.now() });
+    
+    // Reset call counter on successful completion
+    fetchCommunitiesCallCount = 0;
 
-    return { communities: serializedCommunities, isNext };
+    return result;
   } catch (error) {
+    // Reset call counter on error
+    fetchCommunitiesCallCount = 0;
     console.error("Error fetching communities:", error);
-    throw error;
+    return { communities: [], isNext: false };
   }
 }
 
@@ -959,7 +1062,7 @@ export async function updateCommunityInfo({
   path: string;
 }) {
   try {
-    connectToDB();
+    await connectToDB();
 
     const adminObjectId = await resolveUserObjectId(adminId);
     
@@ -1018,7 +1121,7 @@ export async function updateCommunityInfo({
 // New function to get communities by usernames (for community tagging)
 export async function getCommunitiesByUsernames(usernames: string[]) {
   try {
-    connectToDB();
+    await connectToDB();
     
     const communities = await Community.find({
       username: { $in: usernames.map(username => username.toLowerCase()) }
@@ -1040,7 +1143,7 @@ export async function getCommunitiesByUsernames(usernames: string[]) {
 // Fetch community details by username (for community tag pages)
 export async function fetchCommunityDetailsByUsername(username: string, currentUserId?: string) {
   try {
-    connectToDB();
+    await connectToDB();
 
     const currentUserObjectId = currentUserId ? await resolveUserObjectId(currentUserId) : null;
 
@@ -1165,7 +1268,7 @@ export async function inviteToJoinCommunity({
   path: string;
 }) {
   try {
-    connectToDB();
+    await connectToDB();
 
     const adminObjectId = await resolveUserObjectId(adminId);
     const inviteeObjectId = await resolveUserObjectId(inviteeId);

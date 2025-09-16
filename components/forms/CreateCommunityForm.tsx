@@ -15,13 +15,13 @@ import {
   FormField,
   FormItem,
   FormLabel,
-  FormMessage,
 } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 
 import { createCommunity } from "@/lib/actions/community.actions";
+import ImageCropper from "@/components/shared/ImageCropper";
 
 // Updated validation schema to make image and description optional
 const CommunityValidation = z.object({
@@ -44,6 +44,8 @@ function CreateCommunityForm({ userId }: Props) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string>("");
   const [uploadDebug, setUploadDebug] = useState<string>("");
+  const [showCropper, setShowCropper] = useState(false);
+  const [tempImage, setTempImage] = useState<string | null>(null);
 
   const form = useForm({
     resolver: zodResolver(CommunityValidation),
@@ -136,7 +138,9 @@ function CreateCommunityForm({ userId }: Props) {
 
       fileReader.onload = async (event) => {
         const imageDataUrl = event.target?.result?.toString() || "";
-        fieldChange(imageDataUrl);
+        // Set temp image and show cropper instead of directly setting the field
+        setTempImage(imageDataUrl);
+        setShowCropper(true);
         setUploadDebug(prev => prev + `\nFile read complete, size: ${imageDataUrl.length} chars`);
       };
 
@@ -150,6 +154,28 @@ function CreateCommunityForm({ userId }: Props) {
     if (fileInput) {
       fileInput.click();
     }
+  };
+
+  const handleCropComplete = (croppedImage: string) => {
+    // Convert the cropped image to a file and update the form field
+    fetch(croppedImage)
+      .then(res => res.blob())
+      .then(blob => {
+        const croppedFile = new File([blob], "cropped-image.jpg", { type: "image/jpeg" });
+        setFiles([croppedFile]);
+        
+        // Update the form field with the cropped image data URL
+        form.setValue('image', croppedImage);
+        
+        // Close the cropper
+        setShowCropper(false);
+        setTempImage(null);
+      });
+  };
+
+  const handleCropCancel = () => {
+    setShowCropper(false);
+    setTempImage(null);
   };
 
   return (
@@ -217,7 +243,6 @@ function CreateCommunityForm({ userId }: Props) {
                   {...field}
                 />
               </FormControl>
-              <FormMessage />
             </FormItem>
           )}
         />
@@ -238,7 +263,6 @@ function CreateCommunityForm({ userId }: Props) {
                   {...field}
                 />
               </FormControl>
-              <FormMessage />
             </FormItem>
           )}
         />
@@ -259,7 +283,6 @@ function CreateCommunityForm({ userId }: Props) {
                   {...field}
                 />
               </FormControl>
-              <FormMessage />
             </FormItem>
           )}
         />
@@ -300,6 +323,15 @@ function CreateCommunityForm({ userId }: Props) {
           </div>
         )}
       </form>
+
+      {/* Image Cropper Modal */}
+      {showCropper && tempImage && (
+        <ImageCropper
+          src={tempImage}
+          onCropComplete={handleCropComplete}
+          onCancel={handleCropCancel}
+        />
+      )}
     </Form>
   );
 }

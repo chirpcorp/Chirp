@@ -34,14 +34,14 @@ export default function MediaGallery({ media, className = "" }: MediaGalleryProp
     adaptiveHeight: true,
     beforeChange: (oldIndex: number, newIndex: number) => setCurrentSlide(newIndex),
     appendDots: (dots: React.ReactNode) => (
-      <div className="absolute inset-x-0 bottom-4">
-        <ul className="flex justify-center space-x-2"> 
+      <div className="absolute inset-x-0 bottom-2 xs:bottom-4">
+        <ul className="flex justify-center space-x-1 xs:space-x-2"> 
           {dots}
         </ul>
       </div>
     ),
     customPaging: (i: number) => (
-      <div className="size-3 rounded-full border border-white/30 bg-white/50 transition-colors hover:bg-white"></div>
+      <div className="size-2 rounded-full border border-white/30 bg-white/50 transition-colors hover:bg-white xs:size-3"></div>
     ),
   };
 
@@ -84,7 +84,7 @@ export default function MediaGallery({ media, className = "" }: MediaGalleryProp
       <div className={`media-gallery-container ${className}`}>
         <Slider ref={sliderRef} {...settings}>
           {media.map((item, index) => (
-            <div key={index} className="relative aspect-square md:aspect-video">
+            <div key={index} className="relative aspect-square xs:aspect-video">
               {item.type.startsWith("image") ? (
                 <div 
                   className="media-gallery-item"
@@ -95,13 +95,13 @@ export default function MediaGallery({ media, className = "" }: MediaGalleryProp
                     alt={item.filename || `Media ${index + 1}`}
                     fill
                     className="media-gallery-image"
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    sizes="(max-width: 480px) 100vw, (max-width: 768px) 80vw, 60vw"
                     priority={index === 0} // Priority for first image
                   />
                   {/* Fullscreen icon overlay */}
                   <div className="media-gallery-overlay">
                     <div className="media-gallery-icon">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="size-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="size-6 text-white xs:size-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 0h-4m4 0l-5-5" />
                       </svg>
                     </div>
@@ -118,28 +118,28 @@ export default function MediaGallery({ media, className = "" }: MediaGalleryProp
                   {/* Play icon overlay */}
                   <div className="media-gallery-overlay">
                     <div className="media-gallery-icon">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="size-8 text-white" viewBox="0 0 20 20" fill="currentColor">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="size-6 text-white xs:size-8" viewBox="0 0 20 20" fill="currentColor">
                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
                       </svg>
                     </div>
                   </div>
                 </div>
               ) : (
-                <div className="flex h-full items-center justify-center bg-dark-2">
-                  <div className="p-4 text-center">
-                    <div className="text-4xl mb-2">
+                <div className="flex h-full items-center justify-center bg-dark-2 p-2 xs:p-4">
+                  <div className="text-center">
+                    <div className="text-2xl xs:text-4xl mb-1 xs:mb-2">
                       {item.type.includes("audio") ? "🎵" : 
                        item.type.includes("pdf") ? "📄" : 
                        item.type.includes("doc") ? "📝" : "📎"}
                     </div>
-                    <p className="text-sm max-w-xs truncate text-light-1">
+                    <p className="xs:text-sm max-w-xs truncate text-xs text-light-1">
                       {item.filename || "File"}
                     </p>
                     <a 
                       href={item.url} 
                       target="_blank" 
                       rel="noopener noreferrer"
-                      className="hover:text-primary-400 text-sm mt-2 inline-block text-primary-500"
+                      className="hover:text-primary-400 xs:text-sm mt-1 inline-block text-xs text-primary-500 xs:mt-2"
                     >
                       Download
                     </a>
@@ -152,10 +152,11 @@ export default function MediaGallery({ media, className = "" }: MediaGalleryProp
         
         {/* Slide counter */}
         {media.length > 1 && (
-          <div className="media-gallery-counter">
+          <div className="media-gallery-counter xs:text-sm text-xs">
             {currentSlide + 1} / {media.length}
           </div>
-        )}
+        )
+      }
       </div>
 
       {/* Fullscreen Modal */}
@@ -215,24 +216,24 @@ export default function MediaGallery({ media, className = "" }: MediaGalleryProp
             {media.length > 1 && (
               <>
                 <button
-                  className="media-gallery-nav-button left-4"
+                  className="media-gallery-nav-button left-2 xs:left-4"
                   onClick={(e) => {
                     e.stopPropagation();
                     setFullscreenIndex(prev => (prev > 0 ? prev - 1 : media.length - 1));
                   }}
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="size-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="size-5 xs:size-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                   </svg>
                 </button>
                 <button
-                  className="media-gallery-nav-button right-4"
+                  className="media-gallery-nav-button right-2 xs:right-4"
                   onClick={(e) => {
                     e.stopPropagation();
                     setFullscreenIndex(prev => (prev < media.length - 1 ? prev + 1 : 0));
                   }}
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="size-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="size-5 xs:size-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>
                 </button>
@@ -241,17 +242,17 @@ export default function MediaGallery({ media, className = "" }: MediaGalleryProp
             
             {/* Close button */}
             <button
-              className="media-gallery-close-button"
+              className="media-gallery-close-button right-2 top-2 xs:right-4 xs:top-4"
               onClick={closeFullscreen}
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="size-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg xmlns="http://www.w3.org/2000/svg" className="size-5 xs:size-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
             
             {/* Counter */}
             {media.length > 1 && (
-              <div className="media-gallery-fullscreen-counter">
+              <div className="media-gallery-fullscreen-counter xs:text-sm text-xs">
                 {fullscreenIndex + 1} / {media.length}
               </div>
             )}

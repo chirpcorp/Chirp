@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { useNotifications } from "@/hooks/useNotifications";
+import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 
 type NotificationPermission = 'default' | 'denied' | 'granted';
 
@@ -11,6 +13,8 @@ interface NotificationSettingsConfig {
   followers: boolean;
   mentions: boolean;
   followRequests: boolean;
+  weeklySummary: boolean;
+  productUpdates: boolean;
 }
 
 export default function NotificationSettings() {
@@ -22,6 +26,8 @@ export default function NotificationSettings() {
     followers: true,
     mentions: true,
     followRequests: true,
+    weeklySummary: false,
+    productUpdates: false,
   });
   
   const { requestPermission, sendTestNotification, updateSettings, getSettings, getStatus } = useNotifications();
@@ -35,7 +41,17 @@ export default function NotificationSettings() {
     
     // Load notification settings
     const settings = getSettings();
-    setNotificationSettings(settings);
+    if (settings) {
+      setNotificationSettings({
+        likes: settings.likes ?? true,
+        comments: settings.comments ?? true,
+        followers: settings.followers ?? true,
+        mentions: settings.mentions ?? true,
+        followRequests: settings.followRequests ?? true,
+        weeklySummary: settings.weeklySummary ?? false,
+        productUpdates: settings.productUpdates ?? false,
+      });
+    }
   }, [getSettings]);
 
   const requestNotificationPermission = async () => {
@@ -111,36 +127,35 @@ export default function NotificationSettings() {
                 </p>
               </div>
             </div>
-            <div className="ml-6 space-y-2">
-              <label className="relative inline-flex cursor-pointer items-center">
-                <input
-                  type="checkbox"
-                  className="peer sr-only"
-                  checked={pushEnabled}
-                  onChange={() => {
-                    if (!pushEnabled && permissions !== "granted") {
-                      requestNotificationPermission();
-                    } else {
-                      setPushEnabled(!pushEnabled);
-                    }
-                  }}
-                />
-                <div className="peer-focus:ring-primary-300 dark:peer-focus:ring-primary-800 peer-checked:bg-primary-600 peer h-6 w-11 rounded-full bg-gray-200 after:absolute after:left-[2px] after:top-[2px] after:size-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 dark:border-gray-600 dark:bg-gray-700"></div>
-              </label>
+            <div className="ml-6 flex flex-col items-end space-y-2">
+              <Switch
+                checked={pushEnabled}
+                onCheckedChange={() => {
+                  if (!pushEnabled && permissions !== "granted") {
+                    requestNotificationPermission();
+                  } else {
+                    setPushEnabled(!pushEnabled);
+                  }
+                }}
+                className="data-[state=checked]:bg-primary-500 data-[state=unchecked]:bg-gray-200 dark:data-[state=unchecked]:bg-gray-700"
+              />
               {pushEnabled && (
                 <div className="space-y-2">
-                  <button
+                  <Button
                     onClick={sendTestNotificationHandler}
                     className="hover:bg-primary-600 block w-full rounded-md bg-primary-500 px-3 py-1 text-xs text-white transition-colors"
+                    size="sm"
                   >
                     Test
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     onClick={showDebugInfo}
                     className="block w-full rounded-md bg-gray-600 px-3 py-1 text-xs text-white transition-colors hover:bg-gray-700"
+                    variant="secondary"
+                    size="sm"
                   >
                     Debug
-                  </button>
+                  </Button>
                 </div>
               )}
             </div>
@@ -159,15 +174,11 @@ export default function NotificationSettings() {
               <p className="text-body-medium text-light-1">Likes</p>
               <p className="text-small-regular text-gray-1">When someone likes your posts</p>
             </div>
-            <label className="relative inline-flex cursor-pointer items-center">
-              <input
-                type="checkbox"
-                className="peer sr-only"
-                checked={notificationSettings.likes}
-                onChange={(e) => handleNotificationSettingChange('likes', e.target.checked)}
-              />
-              <div className="peer-focus:ring-primary-300 dark:peer-focus:ring-primary-800 peer-checked:bg-primary-600 peer h-6 w-11 rounded-full bg-gray-200 after:absolute after:left-[2px] after:top-[2px] after:size-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 dark:border-gray-600 dark:bg-gray-700"></div>
-            </label>
+            <Switch
+              checked={notificationSettings.likes}
+              onCheckedChange={(checked) => handleNotificationSettingChange('likes', checked)}
+              className="data-[state=checked]:bg-primary-500 data-[state=unchecked]:bg-gray-200 dark:data-[state=unchecked]:bg-gray-700"
+            />
           </div>
 
           <div className="flex items-center justify-between">
@@ -175,15 +186,11 @@ export default function NotificationSettings() {
               <p className="text-body-medium text-light-1">Comments</p>
               <p className="text-small-regular text-gray-1">When someone comments on your posts</p>
             </div>
-            <label className="relative inline-flex cursor-pointer items-center">
-              <input
-                type="checkbox"
-                className="peer sr-only"
-                checked={notificationSettings.comments}
-                onChange={(e) => handleNotificationSettingChange('comments', e.target.checked)}
-              />
-              <div className="peer-focus:ring-primary-300 dark:peer-focus:ring-primary-800 peer-checked:bg-primary-600 peer h-6 w-11 rounded-full bg-gray-200 after:absolute after:left-[2px] after:top-[2px] after:size-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 dark:border-gray-600 dark:bg-gray-700"></div>
-            </label>
+            <Switch
+              checked={notificationSettings.comments}
+              onCheckedChange={(checked) => handleNotificationSettingChange('comments', checked)}
+              className="data-[state=checked]:bg-primary-500 data-[state=unchecked]:bg-gray-200 dark:data-[state=unchecked]:bg-gray-700"
+            />
           </div>
 
           <div className="flex items-center justify-between">
@@ -191,15 +198,11 @@ export default function NotificationSettings() {
               <p className="text-body-medium text-light-1">New Followers</p>
               <p className="text-small-regular text-gray-1">When someone follows you</p>
             </div>
-            <label className="relative inline-flex cursor-pointer items-center">
-              <input
-                type="checkbox"
-                className="peer sr-only"
-                checked={notificationSettings.followers}
-                onChange={(e) => handleNotificationSettingChange('followers', e.target.checked)}
-              />
-              <div className="peer-focus:ring-primary-300 dark:peer-focus:ring-primary-800 peer-checked:bg-primary-600 peer h-6 w-11 rounded-full bg-gray-200 after:absolute after:left-[2px] after:top-[2px] after:size-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 dark:border-gray-600 dark:bg-gray-700"></div>
-            </label>
+            <Switch
+              checked={notificationSettings.followers}
+              onCheckedChange={(checked) => handleNotificationSettingChange('followers', checked)}
+              className="data-[state=checked]:bg-primary-500 data-[state=unchecked]:bg-gray-200 dark:data-[state=unchecked]:bg-gray-700"
+            />
           </div>
 
           <div className="flex items-center justify-between">
@@ -207,15 +210,11 @@ export default function NotificationSettings() {
               <p className="text-body-medium text-light-1">Mentions</p>
               <p className="text-small-regular text-gray-1">When someone mentions you</p>
             </div>
-            <label className="relative inline-flex cursor-pointer items-center">
-              <input
-                type="checkbox"
-                className="peer sr-only"
-                checked={notificationSettings.mentions}
-                onChange={(e) => handleNotificationSettingChange('mentions', e.target.checked)}
-              />
-              <div className="peer-focus:ring-primary-300 dark:peer-focus:ring-primary-800 peer-checked:bg-primary-600 peer h-6 w-11 rounded-full bg-gray-200 after:absolute after:left-[2px] after:top-[2px] after:size-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 dark:border-gray-600 dark:bg-gray-700"></div>
-            </label>
+            <Switch
+              checked={notificationSettings.mentions}
+              onCheckedChange={(checked) => handleNotificationSettingChange('mentions', checked)}
+              className="data-[state=checked]:bg-primary-500 data-[state=unchecked]:bg-gray-200 dark:data-[state=unchecked]:bg-gray-700"
+            />
           </div>
 
           <div className="flex items-center justify-between">
@@ -223,15 +222,11 @@ export default function NotificationSettings() {
               <p className="text-body-medium text-light-1">Follow Requests</p>
               <p className="text-small-regular text-gray-1">When someone requests to follow your private account</p>
             </div>
-            <label className="relative inline-flex cursor-pointer items-center">
-              <input
-                type="checkbox"
-                className="peer sr-only"
-                checked={notificationSettings.followRequests}
-                onChange={(e) => handleNotificationSettingChange('followRequests', e.target.checked)}
-              />
-              <div className="peer-focus:ring-primary-300 dark:peer-focus:ring-primary-800 peer-checked:bg-primary-600 peer h-6 w-11 rounded-full bg-gray-200 after:absolute after:left-[2px] after:top-[2px] after:size-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 dark:border-gray-600 dark:bg-gray-700"></div>
-            </label>
+            <Switch
+              checked={notificationSettings.followRequests}
+              onCheckedChange={(checked) => handleNotificationSettingChange('followRequests', checked)}
+              className="data-[state=checked]:bg-primary-500 data-[state=unchecked]:bg-gray-200 dark:data-[state=unchecked]:bg-gray-700"
+            />
           </div>
         </div>
       </div>
@@ -247,10 +242,11 @@ export default function NotificationSettings() {
               <p className="text-body-medium text-light-1">Weekly Summary</p>
               <p className="text-small-regular text-gray-1">Get a weekly summary of your activity</p>
             </div>
-            <label className="relative inline-flex cursor-pointer items-center">
-              <input type="checkbox" className="peer sr-only" />
-              <div className="peer-focus:ring-primary-300 dark:peer-focus:ring-primary-800 peer-checked:bg-primary-600 peer h-6 w-11 rounded-full bg-gray-200 after:absolute after:left-[2px] after:top-[2px] after:size-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 dark:border-gray-600 dark:bg-gray-700"></div>
-            </label>
+            <Switch
+              checked={notificationSettings.weeklySummary}
+              onCheckedChange={(checked) => handleNotificationSettingChange('weeklySummary', checked)}
+              className="data-[state=checked]:bg-primary-500 data-[state=unchecked]:bg-gray-200 dark:data-[state=unchecked]:bg-gray-700"
+            />
           </div>
 
           <div className="flex items-center justify-between">
@@ -258,12 +254,20 @@ export default function NotificationSettings() {
               <p className="text-body-medium text-light-1">Product Updates</p>
               <p className="text-small-regular text-gray-1">New features and platform updates</p>
             </div>
-            <label className="relative inline-flex cursor-pointer items-center">
-              <input type="checkbox" className="peer sr-only" />
-              <div className="peer-focus:ring-primary-300 dark:peer-focus:ring-primary-800 peer-checked:bg-primary-600 peer h-6 w-11 rounded-full bg-gray-200 after:absolute after:left-[2px] after:top-[2px] after:size-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 dark:border-gray-600 dark:bg-gray-700"></div>
-            </label>
+            <Switch
+              checked={notificationSettings.productUpdates}
+              onCheckedChange={(checked) => handleNotificationSettingChange('productUpdates', checked)}
+              className="data-[state=checked]:bg-primary-500 data-[state=unchecked]:bg-gray-200 dark:data-[state=unchecked]:bg-gray-700"
+            />
           </div>
         </div>
+      </div>
+
+      {/* Save Button */}
+      <div className="flex justify-end">
+        <Button className="hover:bg-primary-600 bg-primary-500">
+          Save Notification Settings
+        </Button>
       </div>
     </div>
   );

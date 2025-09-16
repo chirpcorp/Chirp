@@ -39,14 +39,18 @@ function Comment({ chirpId, currentUserImg, currentUserId }: Props) {
   });
 
   const onSubmit = async (values: z.infer<typeof CommentValidation>) => {
-    await addCommentToChirp(
-      chirpId,
-      values.chirp,
-      JSON.parse(currentUserId),
-      pathname
-    );
+    try {
+      await addCommentToChirp(
+        chirpId,
+        values.chirp,
+        JSON.parse(currentUserId),
+        pathname
+      );
 
-    form.reset();
+      form.reset();
+    } catch (error) {
+      console.error("Error adding comment:", error);
+    }
   };
 
   return (

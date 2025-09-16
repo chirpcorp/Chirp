@@ -34,7 +34,7 @@ async function SettingsPage() {
     }
 
     return (
-      <div className="w-full space-y-8 overflow-hidden">
+      <div className="w-full space-y-8 overflow-x-hidden">
         <div className="border-b border-dark-4 pb-6">
           <h1 className="head-text text-left">Settings</h1>
           <p className="text-body-regular mt-2 text-gray-1">

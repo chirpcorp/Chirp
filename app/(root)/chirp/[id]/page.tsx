@@ -50,7 +50,7 @@ async function page({ params }: { params: Promise<{ id: string }> }) {
       </div>
 
       <div className='mt-10'>
-        {chirp.children.map((childItem: any) => (
+        {chirp.children && Array.isArray(chirp.children) && chirp.children.map((childItem: any) => (
           <ChirpCard
             key={childItem._id}
             id={childItem._id}
@@ -60,7 +60,7 @@ async function page({ params }: { params: Promise<{ id: string }> }) {
             author={childItem.author}
             community={childItem.community}
             createdAt={childItem.createdAt}
-            comments={childItem.children}
+            comments={childItem.children || []}
             hashtags={childItem.hashtags || []}
             mentions={childItem.mentions || []}
             likes={childItem.likes || []}

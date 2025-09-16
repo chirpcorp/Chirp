@@ -13,26 +13,14 @@ const nextConfig = {
     // Add your specific env vars here
   },
   
-  // For authentication and database libraries - Turbopack compatible
-  experimental: {
-    serverComponentsExternalPackages: [
-      '@prisma/client',
-      'bcryptjs',
-      'jsonwebtoken',
-      'mongoose',
-      // Add any other packages causing Server Component issues
-    ],
-  },
-  
-  // Turbopack config for common auth/database libraries
-  // This replaces the webpack configuration for Turbopack compatibility
-  turbopack: {
-    resolve: {
-      alias: {
-        // Add any aliases you need
-      },
-    },
-  },
+  // For authentication and database libraries
+  serverExternalPackages: [
+    '@prisma/client',
+    'bcryptjs',
+    'jsonwebtoken',
+    'mongoose',
+    // Add any other packages causing Server Component issues
+  ],
   
   // Image optimization settings
   images: {
@@ -111,9 +99,6 @@ const nextConfig = {
   
   // Compress responses
   compress: true,
-  
-  // Power pack features
-  swcMinify: true,
   
   // Strict mode
   reactStrictMode: true,

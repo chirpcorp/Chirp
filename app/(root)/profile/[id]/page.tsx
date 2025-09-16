@@ -11,27 +11,74 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { fetchUser, getUserRelationship } from "@/lib/actions/user.actions";
 
 async function Page({ params }: { params: Promise<{ id: string }> }) {
-  const user = await currentUser();
-  if (!user) return null;
+  let user;
+  try {
+    user = await currentUser();
+    if (!user) return null;
+  } catch (error) {
+    console.error("Error fetching current user in profile page:", error);
+    return null;
+  }
 
   // Await the params in Next.js 15 as per the documentation
   const { id } = await params;
 
-  let userInfo;
-  try {
-    userInfo = await fetchUser(id);
-  } catch (error) {
-    // If user is not found, redirect to home page
-    console.error("Error fetching user:", error);
+  // Add safety check to prevent infinite recursion
+  if (!id || id === "undefined" || id === "null") {
+    console.warn("Invalid user ID provided:", id);
     redirect("/");
   }
 
-  if (!userInfo?.onboarded) redirect("/onboarding");
+  let userInfo;
+  let dbConnectionFailed = false;
+  try {
+    userInfo = await fetchUser(id);
+    // Additional safety check
+    if (!userInfo) {
+      console.warn("User not found for ID:", id);
+      redirect("/");
+    }
+  } catch (error) {
+    console.error("Error fetching user:", error);
+    // Check if it's a database connection error
+    if (error instanceof Error && (error.message.includes("MongoDB") || error.message.includes("buffering timed out"))) {
+      dbConnectionFailed = true;
+      // Create a minimal user info object to prevent crashes
+      userInfo = {
+        id,
+        username: 'user',
+        name: 'User',
+        image: '/assets/user.svg',
+        bio: '',
+        email: '',
+        website: '',
+        location: '',
+        joinedDate: new Date().toISOString(),
+        followers: [],
+        following: [],
+        chirps: [],
+        isPrivate: false,
+        onboarded: true,
+      };
+    } else {
+      // If user is not found or other error, redirect to home page
+      redirect("/");
+    }
+  }
+
+  if (!userInfo?.onboarded && !dbConnectionFailed) redirect("/onboarding");
 
   // Get relationship data if viewing another user's profile
-  const relationship = user.id !== id 
-    ? await getUserRelationship(user.id, id)
-    : null;
+  // Add safety check to prevent self-comparison
+  let relationship = null;
+  if (user.id !== id && user.id && id) {
+    try {
+      relationship = await getUserRelationship(user.id, id);
+    } catch (error) {
+      console.error("Error fetching user relationship:", error);
+      // Continue with null relationship
+    }
+  }
 
   // Check if content should be hidden (private account + not following + not own profile)
   const isOwnProfile = user.id === id;
@@ -40,6 +87,11 @@ async function Page({ params }: { params: Promise<{ id: string }> }) {
 
   return (
     <section>
+      {dbConnectionFailed && (
+        <div className="text-sm mb-4 rounded bg-yellow-100 p-2 text-yellow-800">
+          Warning: Database connection failed. Some profile features may be limited.
+        </div>
+      )}
       <ProfileHeader
         accountId={userInfo.id}
         authUserId={user.id}
@@ -92,7 +144,7 @@ async function Page({ params }: { params: Promise<{ id: string }> }) {
 
                   {tab.label === "Chirps" && (
                     <p className='ml-1 rounded-sm bg-light-4 px-2 py-1 !text-tiny-medium text-light-2'>
-                      {userInfo.chirps.length}
+                      {userInfo.chirps?.length || 0}
                     </p>
                   )}
                 </TabsTrigger>

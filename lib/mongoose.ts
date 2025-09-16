@@ -18,20 +18,20 @@ export const connectToDB = async () => {
   }
 
   try {
+    // Connect with reasonable timeout settings to prevent indefinite hanging
     await mongoose.connect(process.env.MONGODB_URL, {
-      serverSelectionTimeoutMS: 10000, // 10 seconds
-      socketTimeoutMS: 20000, // 20 seconds
-      connectTimeoutMS: 10000, // 10 seconds
-      maxIdleTimeMS: 30000, // 30 seconds
-      retryWrites: true,
+      serverSelectionTimeoutMS: 5000, // 5 seconds instead of default
+      socketTimeoutMS: 10000, // 10 seconds
+      connectTimeoutMS: 5000, // 5 seconds
     });
-
     isConnected = true; // Set the connection status to true
     console.log("MongoDB connected successfully");
   } catch (error) {
     console.error("MongoDB connection error:", error);
     isConnected = false; // Reset connection status on error
-    throw new Error(`Failed to connect to MongoDB: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    // Instead of throwing the error, we'll log it but allow the application to continue
+    // This prevents the entire app from crashing when MongoDB is unreachable
+    console.warn("MongoDB connection failed, continuing without database connection");
   }
 };
 
